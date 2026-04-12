@@ -1,0 +1,51 @@
+\section{Management and Support Systems} \label{sota:bss-oss-mano}
+
+The telecommunications industry is undergoing a fundamental transformation, with telecom service providers facing significant challenges as traditional networks and services become increasingly converged. Since legacy \acs{IT} systems are unable to meet the requirements of new services and customer demands, \acs{OSS}/\acs{BSS} systems, based on the eTOM framework by \acs{TMF}~\cite{eTOM-TMF}, are adopted to enable service focused operations and improve customer satisfaction. These systems serve as management platforms for telecom operators and their networks, allowing them to capitalize on new revenue streams by delivering new services to customers~\cite{NGOSSEvolutionTelecomSP}.
+
+Their implementation is central to reducing costs and improving operational and organizational efficiency~\cite{NGOSSEvolutionTelecomSP}. By automating operational tasks, \acs{OSS}/\acs{BSS} solutions allow operators to reduce \acs{OPEX} associated with customer and system management~\cite{OSSMobileNetworks}. This is especially relevant as the number of devices connected to the network grows, with scalability heavily relying on its ability to autonomously configure, provision and update devices without impacting the network~\cite{EricsonOSS}. More importantly, the next generation of \acs{OSS}/\acs{BSS} must advance beyond traditional automation to support orchestration and dynamic allocation of network resources, setting as the ultimate goal a zero-touch network completely integrated with an orchestrator~\cite{SurveyOrchestrationOSSNextGenerationNetworks}.
+
+\subsection{Business Support System}
+
+The \acf{BSS} is responsible for the support of business operations at the customer level. It provides communication services to customers, handling customer-facing operations, including ordering, billing and support. These customer-facing services are fulfilled by the \acs{OSS}, which interacts with the underlying network to ensure service delivery through the corresponding back-office tasks~\cite{CommunicationManagamentPlanOSSCaseStudy}. The \acs{BSS} can be decomposed into the following subcategories~\cite{NGOSSEvolutionTelecomSP}:
+\begin{itemize}
+    \item \textbf{\acf{CRM}:} system responsible for maitaining and retaining the relationship with the customer by identifying and tailoring to its needs. It includes a structured product catalog, allowing for product configuration according to the customer's requirements. It also supports customer service capabilities with generation of quotes, order tracking and trouble ticket management. Additional functionalities in marketing, customer support and partner management are provided too, all centered around the customer with the goal of maximizing customer experience;
+
+    \item \textbf{Billing \& Charging:} handles management of financial interactions with customers, linking revenue to the provided services. Bill Management and settlement functionalities oversee customer data, bill generation and activity tracking, with account analysis being performed for customer and carrier usage (i.e. examines the services consumed by customers and the use of provider resources).
+\end{itemize}
+
+
+\subsection{Operations Support System}
+
+The \acf{OSS} is defined as a group of integrated \acs{HW}/\acs{SW} applications utilized by network operators to guarantee the efficient operation, management, availability and reliability of the IT and telecommunications network. Consumer orders flow down through the \acs{BSS} into the \acs{OSS} layer, which performs the necessary arrangements and activation modifications to the network~\citep{OSSMobileNetworks,CommunicationManagamentPlanOSSCaseStudy}. The \acs{OSS} can be subdivided into the following functional modules~\citep{OSSMobileNetworks, NGOSSEvolutionTelecomSP}:
+
+\begin{itemize}
+
+    \item \textbf{Service Fulfillment:} provisions the services offered by the \acs{BSS} to the customer, applying the necessary modifications to the network. This involves integrating services from multiple vendors and coordinating them in an efficient way;
+
+    \item \textbf{Service Guarantees:} concerns the insurance of services to customers. It handles the configuration, creation and activation of services, incorporating \acs{SLA} Management features to monitor the network and service performance;
+
+    \item \textbf{\acf{NEM}:} provides remote connectivity to network devices offering important configuration and monitoring tools. Instead of each device relying on manual command-line operations, the \acs{NEM} maintains a list of the accessible devices to ensure consistency and accelerate task execution. Also referred to as \acf{EMS}, it primarily focuses on the individual device and its existing state;
+
+    \item \textbf{\acf{NMS}:} responsible for the management of the whole network. The \acs{NMS} grants access to \acs{NEM} funcionalities by directly connecting to devices or interfacing to the \acs{NEM}. In combination, they simplify the process of configuring network elements in a controlled manner, providing fault management capabilities to analyse the state of the network and detect network faults, errors and unavailability scenarios. It also offers performance management operations, investigating the network traffic flow to ensure it meets the expected service quality. Additional functionalities for security management and testing should also be included to support service assurance, with the goal of guaranteeing compliance with customer \acsp{SLA}.
+
+\end{itemize}
+
+The \acs{OSS} complements the \acs{BSS} in the delivery of \acs{E2E} \acs{5G} services to customers. While the \acs{BSS} handles customer-facing interactions, the \acs{OSS} manages the underlying network execution. Together, these systems support the operations of telecom operators, allowing implementation of new services and changes effectively, reducing cost and time to market. It also gives operators the ability to meet evolving user demands, by providing subscribers with mechanisms to create and test services in a more flexible way~\cite{EricsonOSS}.
+
+\subsection{OSS/BSS Integration with NFV-MANO} \label{sec:oss:bss:nfv-mano}
+
+The industry's move towards virtualization has fundamentally transformed how networks are managed and deployed. Therefore, \acs{OSS}/\acs{BSS} systems must evolve to accommodate the increased complexity of virtualized network environments, along with a substantial growth in the number of entities under management~\cite{EricsonOSS}.
+
+However, simply extending existing \acs{OSS}/\acs{BSS} models to account for virtualization is not sufficient, as this approach doesn't support the new capabilities and services offered by \acs{NFV}. Instead, to achieve the full benefit of \acs{NFV}, service providers should consider \acs{NFV-MANO} solutions alongside \acs{OSS}/\acs{BSS} integration and management requirements~\cite{ETSI_GS_NFV_MAN_001_V1_1_1}. For this, \acs{ETSI} defines a series of interfaces within its \acs{NFV-MANO} framework, providing a set of \acs{REST} \acs{API} necessary for the integration with \acs{OSS}/\acs{BSS} systems, providing the following benefits~\cite{ETSI_GS_NFV_MAN_001_V1_1_1}:
+
+\begin{itemize}
+    \item \textbf{Open and consistent interfaces}, to facilitate automation and self-service operations at service and product level, supporting rapid, agile responses to changing business needs;
+
+    \item \textbf{Adaptive automation}, with service usage driving on-demand resource requirements and dynamically allocating the necessary resources and services in real time;
+
+    \item \textbf{Orchestration}, leveraging policies (and other mechanisms) to guide decisions and perform system changes;
+
+    \item \textbf{Personalized services}, easily configurable by the operator, end-user or network resource layers to address individual customer preferences and requirements;
+
+    \item \textbf{Technology-driven innovation}, characterized by rapid development, continuous integration, deployment and experimentation, according to business and service operations agility.
+\end{itemize}

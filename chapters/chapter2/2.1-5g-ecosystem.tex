@@ -1,0 +1,50 @@
+\section{The 5G Ecosystem} \label{sota:5gecosystem}
+
+% verify rough cites
+% should I cite multiple here? because roadTowards6G cites imtVision5G but the definitios are more defined on the imtVision2015
+The introduction of the \acf{5G}, marks a paradigm shift in mobile communications, establishing a ubiquitous connectivity platform~\cite{tech-leadership-and-5g-patent-portfolios} and contributing to the promise of a fully connected society. \acs{5G} represents more than just an incremental performance improvement over its predecessors with increased speeds and lower latencies in data transmissions, connecting people, machines and objects and accelerating digitalization in a variety of sectors. In fact, the success of \ac{IoT} and its wide variety of services and applications is supported, in part, by the development and deployment of \acs{5G}, and eventually of \acs{6G}~\cite{future-of-5g-beyond}. In order to encompass this diverse set of usage scenarios and applications, \acs{5G} was designed to support three classes of services~\citep{imtVision2015, roadTowards6G}:
+\begin{itemize}
+    \item \textbf{\ac{eMBB}:} addresses human-centric use cases for access to multi-media content, services and data. This usage scenario requires delivering enhanced data rates within high user density hostspot environments, where high traffic capacity is needed, and wide-area coverage scenarios that demand seamless coverage and high mobility. Compliance with these requirements fosters new applications over smart devices (smartphones, tablets, and wearable electronics), such as high-definition video streaming in densely populated urban hotspots, as well as \ac{AR} scenarios;
+    \item \textbf{\ac{URLLC}:} caters safety and mission-critical services with stringent requirements on reliability, latency and availability. This includes applications such as autonomous vehicles, Smart Energy Grids and Industry 4.0;
+    \item \textbf{\ac{mMTC}:} supports dense connectivity of a very large number of low-cost, long-battery-life \ac{IoT} devices typically transmitting a relatively low volume of non-delay-sensitive data at low data rates, for example, sensors.
+\end{itemize}
+
+Given this wide diversity of traffic profiles, each demanding distinct performance characteristics, network slicing is introduced to cator to the heterogeneous \ac{QoS} requirements across the different service classes. Network slicing allows the physical network to be partitioned (sliced) into multiple isolated logical networks, each tailored to different types of services with distinct characteristics and requirements. This approach enables the provision of customized reliable services using limited network resources, thereby reducing the \ac{CAPEX} and \ac{OPEX} of \ac{5G} networks~\cite{networkSlicingBased5GFutureMobileNetworks}. By leveraging network slicing, operators can create different levels of services, allowing customized operations for different industry verticals~\cite{NetworkSlicingUseCasesGSMA}. Enterprise verticals operate within distinct vertical domains, defined as specific industries, sectors or groups of enterprises in which similar products or services are developed, produced and provided through applications, commonly referred to as vertical applications~\cite{SEAL5GVerticals}.
+
+The implementation of network slicing is supported by virtualization technologies, which abstract software functions from the physical hardware, eliminating the need for dedicated equipment. This abstraction contrasts with the traditional approach of monolithic and proprietary hardware appliances based on specific implementations that would require significant modifications and an increased cost to introduce new network services and accommodate new service requirements~\cite{networkSlicingOverview}.
+
+More specifically, one of the key enabling technologies of \ac{5G} network slicing is \ac{NFV}. \ac{NFV} addresses the virtualization of network functions, such as firewalls, as \acp{VNF}, on top of commodity hardware devices, breaking the traditional vendor approach of tightly coupled software and hardware offerings. By decoupling the software from the hardware platform both can evolve independently from each other, providing a greater flexibility to deploy new innovative software services (network functions) using the same hardware platform~\cite{slicingUsingSdnNfvTaxonomy}. 
+
+With software-based \ac{NFV} solutions, some of the \acp{NF} can be placed at the \ac{SP}'s shared infrastructure. Therefore, modifying functions for all or a subset of customers becomes much more manageable since changes can be performed centrally at the \ac{SP}'s infrastructure rather than at the customer premises. Additionally, \ac{NFV} offers \acp{SP} the ability to (i) dynamically scale and provision tailored network services based on customer demand, (ii) reduce both \ac{CAPEX} and \ac{OPEX} on network infrastructure and (iii) shorten the time-to-market for new network services~\cite{slicingUsingSdnNfvTaxonomy}.
+
+% this is achieved through a centralized component -> can I infer this from the image?
+\ac{SDN} plays a complementary role in network slicing, operating alongside \ac{NFV} to achieve softwarization and virtualization of the network infrastructure and resources, respectively. \ac{SDN} simplifies network management, introducing network programmability and open network access by decoupling the control plane from the data plane and logically centralizing network intelligence~\cite{NetworkSlicingSoftwarizationSurvey}. This is achieved through a centralized \ac{SDN} controller over a virtualized control plane that intelligently manages network functions, bridging the gap between service provisioning and network management. In the context of network slicing, the \ac{SDN} controller dynamically manages slices, enforcing network slice policies and resource orchestration. Combined with \acs{NFV}, both provide programmable control and management of network resources, enabling efficient network slicing~\cite{slicingUsingSdnNfvTaxonomy}
+
+
+\hide{
+
+3-how-disruptive-is-5g -> introduction of verticals and use cases
+
+lacks citing all features from the sensors paper 
+
+SAY THIS SOMEWHERE
+
+- Providing a virtualized end-to-
+end environment that can be opened to third
+parties is one of the key features that differentiates
+network slicing from network sharing.
+
+- Network Slicing as a service (5g-network-slicing-using-SDN-and-NFV)
+
+\later{check citations of systematic reviews and see if they are from the systematic review or from a specific source mentioned in the systematic review}
+
+\later{ONF for network slicing}
+
+\later{This way, the network control becomes directly programmable using standardized \aclp{SBI}  ~\cite{slicingUsingSdnNfvTaxonomy} defining communication between forwarding devices in the data plane and the control plane.}
+
+- Supported by network slicing, network resources can be dynamically and efficiently allocated to logical network slices according to the corresponding QoS demands.
+
+}
+
+
+

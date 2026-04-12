@@ -1,15 +1,120 @@
-\chapter{Informações Adicionais}
+\chapter{Additional Information}
 \label{chap:appendix-more}
 
-\begin{introduction}
-Este apêndice foi criado para fornecer informações adicionais que complementam o conteúdo principal da tese.
-\end{introduction}
+\section{NEF Implementations} \label{appendix:NEF}
 
-\section{Seção de Exemplo}
-Este é um exemplo de seção adicional que pode ser incluída em um apêndice. Você pode adicionar mais seções conforme necessário para fornecer detalhes suplementares, dados brutos, ou qualquer outra informação relevante que não foi incluída no corpo principal do trabalho.
+\begin{longtable}{p{6cm} c c c}
+\caption{Northbound API Coverage across open source NEF Implementations}
+\label{tab:nef:comparision:long}\\
+\toprule
+\textbf{Northbound \acs{API}} & \textbf{Free5GC} & \textbf{NEFSim} \\
+\midrule
+\endfirsthead
 
-\subsection{Outra Seção de Exemplo}
-Aqui está outra seção de exemplo. Apêndices são úteis para manter o fluxo do texto principal, enquanto ainda fornecem acesso a informações importantes para leitores interessados.
+\multicolumn{3}{c}%
+{\tablename\ \thetable\ -- \textit{Continued from previous page}} \\
+\toprule
+\textbf{Northbound \acs{API}} & \textbf{Free5GC} & \textbf{NEFSim} \\
+\midrule
+\endhead
 
+\midrule
+\multicolumn{3}{r}{\textit{Continued on next page}} \\
+\endfoot
 
+\bottomrule
+\endlastfoot
 
+\rowcolor{gray!15}
+ResourceManagementOfBdt      & $\times$             & $\times$ \\
+\rowcolor{white}
+PfdManagement                & $\checkmark$         & $\checkmark$ \\
+\rowcolor{gray!15}
+MonitoringEvent              & $\times$             & $\checkmark$ \\
+\rowcolor{white}
+DeviceTriggering             & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+CpProvisioning               & $\times$             & $\times$ \\
+\rowcolor{white}
+ChargeableParty              & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+AsSessionWithQoS             & $\times$             & $\checkmark$ \\
+\rowcolor{white}
+MsisdnLessMoSms              & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+NpConfiguration              & $\times$             & $\times$ \\
+\rowcolor{white}
+NIDD                         & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+RacsParameterProvisioning    & $\times$             & $\times$ \\
+\rowcolor{white}
+ECRControl                   & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+TrafficInfluence             & $\checkmark$         & $\checkmark$ \\
+\rowcolor{white}
+NiddConfigurationTrigger     & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+AnalyticsExposure            & $\times$             & $\times$ \\
+\rowcolor{white}
+5GLANParameterProvision      & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+ApplyingBdtPolicy            & $\times$             & $\times$ \\
+\rowcolor{white}
+IPTVConfiguration            & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+LpiParameterProvision        & $\times$             & $\times$ \\
+\rowcolor{white}
+ServiceParameter             & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+ACSParameterProvision        & $\times$             & $\times$ \\
+\rowcolor{white}
+MoLcsNotify                  & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+AKMA                         & $\times$             & $\times$ \\
+\rowcolor{white}
+TimeSyncExposure             & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+EcsAddressProvision          & $\times$             & $\times$ \\
+\rowcolor{white}
+AMPolicyAuthorization        & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+AMInfluence                  & $\times$             & $\times$ \\
+\rowcolor{white}
+MBSTMGI                      & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+MBSSession                   & $\times$             & $\times$ \\
+\rowcolor{white}
+EASDeployment                & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+ASTI                         & $\times$             & $\times$ \\
+\rowcolor{white}
+DataReporting                & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+DataReportingProvisioning    & $\times$             & $\times$ \\
+\rowcolor{white}
+UEId                         & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+MBSUserService               & $\times$             & $\times$ \\
+\rowcolor{white}
+MBSUserDataIngestSession     & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+MSEventExposure              & $\times$             & $\times$ \\
+\rowcolor{white}
+MBSGroupMsgDelivery          & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+DNAIMapping                  & $\times$             & $\times$ \\
+\rowcolor{white}
+PDTQPolicyNegotiation        & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+MemberUESelectionAssistance  & $\times$             & $\times$ \\
+\rowcolor{white}
+GroupParametersProvisioning  & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+SliceParamProvision          & $\times$             & $\times$ \\
+\rowcolor{white}
+UEAddress                    & $\times$             & $\times$ \\
+\rowcolor{gray!15}
+ECSAddress                   & $\times$             & $\times$ \\
+\rowcolor{white}
+RSLPPIParametersProvisioning & $\times$             & $\times$ \\
+\end{longtable}

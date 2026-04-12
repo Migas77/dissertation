@@ -1,0 +1,65 @@
+\section{Network Applications} \label{sota:networkapplications}
+
+Network Applications, were first described in 2019 at the 5GPPP Horizon ICT-41-2020 calls, as a concept to chain \acp{VNF} across several domains to create applications tailored to the requirements of specific tenants or verticals. Under this initial proposal request, particular emphasis is placed on the creation of open platforms for development, testing and validation of network applications according to each specific vertical use case. By utilizing these experimental facilities, third parties such as \acsp{SME}, service providers or target vertical users would be able to experiment and test their applications in fully featured virtualised 5G infrastructure, in the context of specific vertical sectors including connected and automated mobility, smart factories and industry 4.0~\cite{ICT-41-2020}.
+
+The concept of network applications lacks a common standard definition, with various organizations and standardization bodies offering slightly different interpretations depending on their specific context.
+
+From a technical testing and validation perspective, \acs{ETSI} simply defines it as "a virtual application that can be deployed in a 5G infrastructure and can use 5G services" (e.g., connectivity or localization). In this interpretation, a network application is composed by one or more \acp{AF} or \acp{NF} (not to be confused with components from \ac{5G} \ac{SBA}), responsible for implementing the application logic and the underlying network/communication functionalities, respectively. Each of these individual components can either be statically deployed on top of physical hardware or through virtualization techniques, i.e. virtual machines or cloud-native containers~\cite{ETSI_TS_104_074_V1_1_1}.
+
+The 5G-PPP Software Network Working Group further refines this definition as a collection of services that provide certain functionalities to verticals and their associated use cases by interacting with the mobile network's control plane through exposed Open \acsp{API}, such as \acs{5GC} northbound \acsp{API} (e.g. via \acs{NEF}), the \acs{RIC}, and edge computing \acsp{API}. In their view, Network Applications provide a middleware layer between verticals and \acsp{CSP} that simplifies the implementation and deployment of vertical systems at large scale, allowing contribution from third parties or network operators based on the established level of interaction and trust. The document also specifies a set of optional requirements that characterize a network application, including its ability to span one or more \acs{5G} network slices and to consume monitoring and telemetry data from the \acs{5G}/\acs{B5G} system to support analytics and operational functions~\cite{NetworkApps5GPPP}.
+
+An even more granular and nuanced definition is provided by \citet{CAPIFmicroserviceVerticals}, with emphasis on guaranteeing a secure, standardized and trusted access to the aforementioned \acsp{API}, through required standardized \acs{CAPIF} compliance.
+
+For the purposes of this dissertation, the definition of Network Applications proposed by the 5G-PPP is adopted due to being the most complete. However, this definition could be completed further, emphasizing alignment with telecom standardization initiatives, such as \acs{CAPIF} for secure capability exposure, and the CAMARA project for establishing standardized user-friendly network \acsp{API}. Combined, these initiatives enable new interaction models with the control plane of the \acs{5G} core, supporting the fulfillment of network application use cases.
+
+
+\hide{
+(WHY IS TESTING / VALIDATING NETWORK APPLICATIONS IMPORTANT)
+
+
+não é só network applications mas sim interfaces e todo o tipo de cenas relacionadas a 5G
+
+not only from the vertical perspective but also from the 
+
+CAPIF paper -> Using CAPIF terminology, NetApps are, by nature, API
+Invokers that consume APIs exposed by AEFs. 
+
+}
+
+\subsection{Use Cases}
+
+Following the conceptual definition of network applications, this section outlines their diverse array of use cases implemented throughout the literature. A frequently addressed use case corresponds to \ac{CAM} scenarios, with a particular emphasis on digital twin implementations. \citet{VirtualOnBoardUnitMigration} focus on a network application that supports the creation of digital twins for physical \acsp{OBU} placed in modern vehicles. These v\acsp{OBU} follow the vehicle by automatically migrating between different \ac{MEC} domains to maintain low-latency access, while facilitating collection and offloading of the vehicular sensor data to the edge. In the context of \acs{CAM} vertical use cases, subsequent research further explores the digital twin concept, emphasizing the use of \ac{QoS} profiles to guarantee sufficient data throughput for vehicular data collection on congestioned areas based on vehicle location~\cite{DynamicQoSAdaptationviaExposedServiceAPIs}.
+
+A similar concept can also be applied to the \ac{T&L} sector, particularly to enhance safety and efficiency of remote vessel operation in busy port environments. \citet{NextGenConnectivityDynamicQoS} introduce the concept of Edge Network Applications (EdgeApps), which interact with the \acs{5G SA} network to dynamically modify \acf{QoS} based on vertical needs. More specifically, it proposes two EdgeApps: the Situational Awareness EdgeApp and the Quality Awareness EdgeApp. The Situational Awareness EdgeApp dynamically adjusts network \acs{QoS} based on the vessel's context and location, such as entering busy port areas or bridges, guaranteeing an higher bandwitdh or uplink capacity to ensure safe and efficient remote operation. It is also responsible for reducing the load on the network in scenarios where high-quality video streams are not needed: vessels operating in fully autonomous mode or manually controlled onboard. The Quality Awareness EdgeApp actively monitors the link network quality (performance), detecting when the network is under-performing, triggering \acs{QoS} adjustments or notifying the remote captain if necessary.
+
+Beyond vehicular scenarios, network applications have also been explored in the context of media and streaming, where maintaining a high level of \ac{QoE} across high traffic and variable network quality is critical. The work by \citet{BenefitsCaveatsQoDNetworkAPIsVideoStreaming} investigates the use of a \ac{CDN}  to improve the \ac{QoE} amidst difficult network conditions by providing additional network bandwidth to a given video streaming session, according to a predefined strategy (e.g. based on the buffer length).
+
+Finally, a comprehensive list of 11 network applications that were tested and certified under the 5GASP project in 2024 is also available~\cite{NetApps5GASP}, among which particular attention is given to those targeting public safety and \ac{PPDR} scenarios: \ac{5G} \ac{IOPS}; \ac{FIDEGAG}. The \ac{IOPS} network application aims to maintain a level of communication between public safety users (e.g. emergency responders), ensuring continuity of mission-critical services in situations where the backhaul connectivity ot the core network is not fully functional or disrupted, such as in \ac{PPDR} disaster situations and in out-of-coverage areas~\cite{IOPS5G}. The \ac{FIDEGAG} network application is deployed on an air drone to provide the first assessment of buildings and forests affected by fire. The network application handles the drone's live image streaming, transmitting telemetry and sensor data through the \ac{5G} system to ground teams, while performing the necessary handovers between \ac{5G} stations~\cite{FIDEGAG5G}.
+
+\hide{
+
+-> coupled with IoT 
+
+-> capability exposure
+
+-> tomam partido da NSSF function (machine learning blah blah). Support wide variety of IoT use cases, such as blah blah
+
+-> tomam partido da NWDAF function 
+
+
+\later{5G-Advanced}
+
+
+Edge Network Applications -> DynamicQoS Optmization for 5G Stan
+
+ V IRTUAL O N -BOARD U NIT MIGRATION IN A
+M ULTI - ACCESS S MART-C AMPUS 5G A RCHITECTURE -> NEF (Virtual On-board Unit Migration)
+
+PPDR
+
+\later{CHECK PAPER Service Requirements of 5G System by 3GPP}
+
+}
+
+
+
