@@ -1,0 +1,34 @@
+\section{CAMARA \acsp{API} Integration}
+\label{chap:proposal:camara}
+
+\plan{
+    \begin{enumerate}
+        \item Reestablish the benefits of the CAMARA API initiative and the goal of integrating it with the NEF to simplify acess of network applications to network capabilities
+        \item Introduce the following subsections with Application Profiles and Connectivity Insights Subscriptions APIs as the proposed solution to the previously mentioned issue.
+    \end{enumerate}
+}
+
+\subsection{Application Profiles \acs{API}}
+
+\plan{
+    \begin{enumerate}
+        \item Define the purpose of the Application Profiles API: "enables developers to share essential information about their applications that is relevant for network and CAMARA APIs decision-making"
+        \item Include a sequence diagram for the NBI Realization of the Application Profiles API (extend from GSMA Paper and cite).
+        \item Clarify the role of the Application Profiles API as a shared profile repository designed to be consumed by other CAMARA APIs and network systems to drive decisions
+    \end{enumerate}
+}
+
+
+\subsection{Connectivity Insights Subscriptions \acs{API}}
+
+\plan{
+    \begin{enumerate}
+        \item Define the purpose of the Connectivity Insights Subscriptions API: "enables application developers to receive continuous updates about network quality through event notifications. This allows developers to monitor network performance for their application users and receive alerts when network conditions change, helping them take informed decisions related to optimizing the application’s end user experience."
+        \item Include a sequence diagram for the \acs{NBI} Realization of the Connectivity Insights Subscriptions \acs{API} (cite GSMA paper and explain changes / different approach)
+        \item Mention such \acsp{API} are standardized at the interface level with inner logic being implementation-specific and abstracted away from network application developers.
+        \item Reiterate the importance of the Application Profiles API, regarding the Connectivity Insights API, which provides, through application profiles, the network requirements of the application to be monitored through the Connectivity Insights API.
+        \item Highlight mapping of application profile fields into the requests to \acs{NEF} analytics exposure \acs{API}, reflecting the network application performance requirements.
+        \item Emphasize different suite of \acs{NEF} analytics events utilized in the sequence diagram in order to leverage the network metrics provided by the \acs{NEF} analytics exposure \acs{API}, highlighted at Section \ref{chap:proposal:nefmulator}, to support the network requirements specified in the CAMARA Application Profile (maybe include swagger?).
+    \end{enumerate}
+}
+

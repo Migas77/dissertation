@@ -1,0 +1,12 @@
+\section{Network Observability}
+\label{chap:proposal:observability}
+
+\plan{
+    \begin{enumerate}
+        \item Establish network slicing as the baseline for the stringent network requirements required by a Network Application
+        \item Highlight the need for a mechanism to actively monitor the network against these requirements, at the expense of the network application malfunctioning
+        \item Introduce the range of metrics that can be collected and exported directly from the network's raw packet traffic (should I introduce here the port mirror setup? As it's basically a pre-condition for the implementation discussed in the next section)
+        \item Highlight the need for a fully automated process without manual one-off scripts or hperf requests, with the goal of validating network applications
+        \item Introduce active probing as a partial solution to this problem, as automatic probing per-slice/per-ue needs to be triggered in an autonomous way upon provisioning a slice/UE. This introduces the next section with OSL Generic Controller
+    \end{enumerate}
+}
