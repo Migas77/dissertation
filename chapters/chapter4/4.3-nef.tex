@@ -1,0 +1,13 @@
+\section{\acs{NEF}}
+\label{chap:impl:nef}
+
+\plan{
+    \begin{enumerate}
+        \item Reestablish NEF as the main network function responsible for the exposure of the network's capabilities and justify the choice of the NEF Emulator for performing this role
+        \item Highlight that despite the NEF Emulator providing a robust set of NEF's northbound APIs, some lack the necessary integrations with the real testbed essentially acting as a stub. Highlight the ones that do have this integration and control/reflect the actual behavior of the live testbed: QoS (verify with/ask Rafael)
+        \item Emphasize that a real testbed allows validation against actual UE behavior and live QoS profiles and traffic flows. This is achieved through the validation of real network metrics that NEFSim simply cannot replicate, meaning that use cases such as QoS policy enforcement, monitoring subscriptions, or traffic influence that depend on real UE interaction remain entirely unverified. (only mention the problems that will actually be solved - probably QoS)
+        \item Therefore it is specially relevant to integrate the analytics exposure API with real network metrics collected on the Testbed as specified in Section \ref{chap:proposal:observability}, thereby allowing the validation of these APIs and the use cases of network applications that are based on them
+        \item Highlight the suite of \acs{NEF} analytics events (from \acs{NEF}'s analytics exposure \acs{API}) included in order to support the network analytics to be monitored, that were specified in Section \ref{chap:proposal:observability}
+        \item However, interaction directly with the NEF Analytics Exposure API requires deep understanding of the standard (reference the given standards, reference multiple even) and telco expertise. Therefore, introduce CAMARA APIs, namely the application profiles and connectivity insights subscriptions APIs as a more user friendly way to validate the network performance against the requirements of a given network application (described via an application profile), abstracting away the underlying complexity from network application developers. 
+    \end{enumerate}
+}

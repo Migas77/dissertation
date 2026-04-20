@@ -1,9 +1,12 @@
-\section{Secure \acs{API} Exposure via Open\acs{CAPIF}}
+\section{Secure \acs{API} Exposure via \acs{CAPIF}}
 \label{chap:proposal:capif}
 
 \plan{
     \begin{enumerate}
-        \item The CAMARA and \acs{NEF}Sim components handle the exposure of network capabilities to third parties, promoting the development of network applications. However, there is still a lack of a standardized mechanism for the secure discovery, exposure, and consumption of these northbound APIs, which is achieved through the introduction of \acs{CAPIF}. More specifically, Open\acs{CAPIF}~\cite{OpenCAPIF}, an open source project by the \acs{ETSI} \acs{SDG}, was selected for the implementation of the \acs{CAPIF} framework, due to its compliance with \acs{3GPP} standards and active support. Thus, Open\acs{CAPIF} will be utilized to securely expose CAMARA and \acs{NEF} \acsp{API}.
-        \item (copied from the architecture subsection - don't know what else to say tbh)
+        \item The CAMARA and \acs{NEF} components handle the exposure of network capabilities to third parties, providing network application developers with the necessary capabilities to develop their network applications. However, there is still a lack of a standardized mechanism for the secure discovery, exposure, and consumption of these northbound APIs. This is specifically relevant in the context of a testbed where such components cater to the needs of multiple clients and, consequently, network applications.
+        \item Introduce \acs{CAPIF} as the \acs{3GPP}-specified solution to this problem. Clarify that \acs{CAPIF} was designed specifically to protect \acs{3GPP} northbound interfaces, i.e. \acs{NEF} northbound \acsp{API}. Therefore, CAMARA \acsp{API} fall strictly outside \acs{CAPIF}'s original design scope.
+        \item However, in practice, several works in the research community utilize \acs{CAPIF} as a general-purpose \acs{API} gateway with authentication and authorization capabilities (cite such papers), leveraging it to protect CAMARA \acsp{API} as well.
+        \item This interpretation is also adopted in this dissertation, using \acs{CAPIF} to expose and protect both \acs{NEF} and CAMARA \acsp{API}, with the understanding this represents an extension beyond \acs{CAPIF}'s original intent, thus treating it as a unified secure exposure layer for all northbound \acsp{API} in the testbed.
+        \item Justify this choice architecturally: from the perspective of a network application developer, having a single point of onboarding, discovery, and authentication/authorization access, regardless of whether the underlying \acs{API} is a \acs{3GPP} \acs{NEF} interface or a CAMARA abstraction, significantly reduces integration complexity and is consistent with the testbed's goal of providing a developer-friendly environment.
     \end{enumerate}
 }

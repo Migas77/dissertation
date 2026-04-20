@@ -1,0 +1,12 @@
+\section{Network Observability}
+\label{chap:proposal:observability}
+
+\plan{
+    \begin{enumerate}
+        \item Establish network slicing as the baseline for sustaining the stringent network requirements required by a Network Application
+        \item Underline that passively relying on the slice/\acs{QoS} configuration spec is insufficient. Highlight the need for a mechanism to actively monitor the network against these requirements, as undetected violations of network requirements directly risk the correct functioning of the Network Application (connect these with the metrics specified earlier in the previous section).
+        \item Introduce and enumerate the range of metrics that can be collected, organized by their NF source. Track each metric back to the metrics table defined at Section \ref{sec:testingandvalidation:metrics} and their respective use cases, justifying their selection. Some include: uplink/downlink from UPF for each PDU session. (Should this be the final list we're collecting or all of them - from the table?)
+        \item Highlight the need for a fully automated monitoring process without manual one-off scripts or hperf requests, with the goal of validating network applications, against the declared \acs{QoS} requirements.
+        \item Introduce active probing as a partial solution to this problem, as automatic probing per-slice/per-ue needs to be triggered in an autonomous way upon provisioning a slice/UE.
+    \end{enumerate}
+}

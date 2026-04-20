@@ -1,0 +1,13 @@
+\section{\acs{5G} Resource Lifecycle Management}
+\label{chap:proposal:gcontroller}
+
+\plan{
+    \begin{enumerate}
+        \item Highlight the need for the provisioned 5G Resources to be managed and provisioned under a single platform, available to third parties without revealing privileged insights of the testbed. 
+        \item Associate each step of the workflow of the provisioning workflow with the corresponding NSI lifecycle phases defined in Section \ref{sec:slice:lifecycle}
+        \item Detail the components required to associate a network slice with a UE: beyond the NSI itself, this involves configuring the S-NSSAI on the UE, registering it with the correct AMF slice selection policy, and establishing the PDU session over the desired DNN.
+        \item Highlight the need for a fully automated process that not only provisions the 5G Resources but also is deeply integrated with monitoring mechanisms that can safeguard the testbed performance, and, therefore, attribute any observed network application behaviour (whether functional or anomalous) directly to the application code of said network application.
+        \item However, in order to be able to properly develop and test network applications, developers need interfaces, providing controlled access to network capabilities that can be used to tailor the 5G system to the needs of their applications (it's necessary to also mention what interfaces enable this, for instance QoS Management). Therefore, it is crucial for the testbed to expose relevant network functions and these interfaces in a secure, standardized, and developer-friendly manner
+        \item The NEF and specific details of such interfaces will be discussed further in the following section
+    \end{enumerate}
+}

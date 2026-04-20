@@ -1,0 +1,48 @@
+\section{\acs{NEF}}
+\label{chap:proposal:nef}
+
+\plan{
+    \begin{enumerate}
+        \item Reestablish NEF as the main network function responsible for the exposure of the network's capabilities
+        \item Frame the three northbound APIs covered in the following subsections as complementary tools targeting different aspects of network applications, each motivated by a specific use case:
+        \begin{itemize}
+            \item AsSessionWithQoS (QoS Control): for applications that need to enforce specific QoS profiles on active UE sessions (e.g. guaranteeing bandwidth for a video stream or low latency for a vehicle control link);
+            \item MonitoringEvent (event monitoring): for applications that need to react to UE state changes in the network (e.g. detecting loss of connectivity or location changes to trigger QoS adaptations);
+            \item Analytics Exposure (analytics consumption): for applications that need to observe network performance metrics (e.g. monitoring throughput and latency against declared requirements).
+        \end{itemize}
+    \end{enumerate}
+}
+
+\subsection{AsSessionWithQoS \acs{API}}
+
+\plan{
+    \begin{enumerate}
+        \item Define the purpose of the API
+        \item Describe the typical interaction flow: an application submits a QoS subscription request (identifying the UE, IP flow, and desired QoS profile); the NEF maps this to internal 5G QoS parameters and coordinates with the PCF to enforce the policy.
+        \item Highlight the key parameters exposed by the API (QoS reference identifiers, UE identifiers, flow descriptors, and notification endpoints) and clarify how they abstract away the complexity of internal QoS class mappings.
+        \item Position this API as the primary mechanism enabling network applications to express and enforce latency/bandwidth requirements, directly supporting use-case-specific network conditions.
+    \end{enumerate}
+}
+
+\subsection{MonitoringEvent \acs{API}}
+
+\plan{
+    \begin{enumerate}
+        \item Define the purpose of the API
+        \item Enumerate the main event types relevant to the work: location reporting, loss of connectivity, UE reachability and roaming status
+        \item Describe the typical interaction flow: applications register a monitoring event configuration (specifying the target UE(s), event type, reporting frequency, and callback URI); the NEF then triggers notifications to the application upon event occurrence.
+        \item Frame MonitoringEvent \acs{API} as a complementary mechanism to the previously mentioned AsSessionWithQoS \acs{API}, as it enables network applications to detect conditions (based on \acs{UE} state) that warrant \acs{QoS} changes through the AsSessionWithQoS \acs{API}.
+    \end{enumerate}
+}
+
+\subsection{Analytics Exposure \acs{API}}
+
+\plan{
+    \begin{enumerate}
+        \item Define the purpose of the API 
+        \item Highlight the relevance of the \acs{API} regarding network observability and the range of metrics mentioned in the next section.
+        \item Emphasize the role of the \acs{NWDAF} as the native \acs{5G} mechanism for network observability, being responsible for gathering metrics scattered across multiple network functions, and deriving new ones.
+        \item Reintroduce the \acs{NEF} analytics exposure \acs{API} as the standardized interface for exposing network analytics to external consumers, whether sourced from the \acs{NWDAF} or obtained via alternative means (e.g., directly from raw IP traffic analysis or via active probing). This is specially relevant, as it allows the validation of network application requirements and behavior without the need for an \acs{NWDAF}. (isto ficou meio estranho assim que peguei no NWDAF não, visto que não vamos usar NWDAF nenhum, mas parece-me relevante. Ver se estes 3 tópicos ficam melhor neste capítulo ou no próximo)
+        \item Position this \acs{API} as the bridge between internal network observability and the network application layer, allowing both: the change of \acs{QoS} profile according to network conditions; 2. assurance of network's expected performance, as per the testbed client slice requirements; 3. lastly, the validation of application behavior and requirements
+    \end{enumerate}
+}

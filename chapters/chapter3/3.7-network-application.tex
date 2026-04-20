@@ -3,8 +3,40 @@
 
 \plan{
     \begin{enumerate}
-        \item The implemented exposure interfaces, provided by the CAMARA and NEF northbound APIs, and secured by OpenCAPIF, will serve as the foundation for the development and validation of future network applications, by a variety of developers.
-        \item Introduce \acs{PoC}
-        \item (To be continued ...)
+        \item Introduce the PPDR domain as the vertical context for the PoC, drawing from the use cases discussed in Section \ref{sota:networkapplications:usecases} (IOPS, FIDEGAG). Highlight the particular relevance of PPDR scenarios for exercising network exposure interfaces: they require reliable, low-latency communication under dynamic and potentially degraded network conditions, making QoS enforcement and continuous network monitoring essential, not optional, capabilities.
+        \item Revisit the use cases from Section \ref{sota:networkapplications:usecases} and corresponding internal details (\acs{NEF}/CAMARA \acs{API} suite) from Section \ref{sec:testingandvalidation:netapps}:
+        \begin{itemize}
+            \item Dynamic \acs{QoS} adaptation enforced through CAMARA \acs{QoS} \acs{API} in response to either geographical changes obtained with CAMARA Device Location \acs{API} in digital twin / \acs{CAM} scenarios, or to network quality deterioration (or to video quality deterioration in case of video streaming/broadcast).
+            \item \acs{PPDR}: \acs{IOPS}, \acs{FIDEGAG}
+        \end{itemize}
+        \item State the objective of the \acs{PoC} application: a Public Protection and Disaster Relief (PPDR) network application developed within the FIDEGAD scenario, where drone-based fire detection and ground assistance capabilities are leveraged to support emergency response teams in wildfire situations. Reenforce this as an ongoing mission-critical operation, dynamically adapting QoS profile in response to changes in network conditions or operational context.
+        \item Derive the application requirements from the use case (NEED TO VERIFY THESE REQUIREMENTS):
+        \begin{itemize}
+            \item Guaranteed minimum UL throughput for video/telemetry data transmission;
+            \item Bounded RTT and low jitter for real-time command and control;
+            \item Continuous monitoring of network performance against these requirements;
+            \item Ability to escalate to a higher-priority QoS profile when degradation is detected or predicted.
+        \end{itemize}
+        \item The implemented exposure interfaces, provided by the CAMARA and NEF northbound \acsp{API}, and secured by \acs{CAPIF}, will serve as the foundation for the development and validation of future network applications, by a variety of developers.
+        \item Map each requirement to the corresponding network interface, showing how the PoC will interact with the implemented components to fulfill its goals:
+        \begin{itemize}
+            \item CAPIF: onboarding and authenticated discovery of all APIs;
+            \item NEF AsSessionWithQoS API: direct QoS profile enforcement per UE flow;
+            \item NEF MonitoringEvent API: subscription to UE state events (e.g. location changes) that may warrant a QoS adaptation;
+            \item NEF Analytics Exposure API: retrieval of live throughput, RTT, jitter, and packet loss metrics;
+            \item CAMARA Application Profiles API: declaration of the application's network requirements as a machine-readable profile;
+            \item CAMARA Connectivity Insights Subscriptions API: event-driven notification when network performance falls below declared thresholds.
+        \end{itemize}
+        \item Clarify that NEF and CAMARA APIs are not redundant but complementary alternatives: the CAMARA APIs provide a higher-level, developer-friendly abstraction over the same underlying NEF capabilities, while the NEF APIs offer finer-grained control. Both paths are exercised in the PoC to validate the full integration stack.
+        \item Include an interaction sequence diagram illustrating the end-to-end flow of the PoC (prioritizing CAMARA):
+        \begin{enumerate}
+            \item (in progress)
+            \item Onboarding via CAPIF
+            \item the creation of application profile according declaring application requirements (does not need to match exactly the slice requirements)
+            \item the creation of connectivity insights subscription to be notified when the application requirements are not being respected
+            \item  the change of \acs{QoS} profile in response to being unable to meet the application requirements or in response to a location change (CAMARA QoD API)
+        \end{enumerate}
+        \item Explain how the \acs{PoC} exercises all implemented interfaces end-to-end: it onboards via CAPIF, consumes CAMARA APIs (Application Profiles to declare its requirements, Connectivity Insights Subscriptions to monitor performance, QoD to enforce them)
+        \item Include sequence diagram and sequence diagram this time prioritizing the NEF. Showcase the added complexity of the NEF implementation flow comparetively to CAMARA APIs.
     \end{enumerate}
 }
