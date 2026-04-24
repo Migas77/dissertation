@@ -23,19 +23,16 @@ The interaction is initiated when the \acs{AS}/\acs{AF} (e.g. a network applicat
     \item \acs{QoS} Monitoring: Depending on the subset of monitoring features supported by the \acs{API} ("QoSMonitoring\_5G", "EnQoSMonGMEC", "EnQoSMonListUE\_5GGMEC") the following monitoring information can be requested: packet delay (\texttt{qosMonInfo}), packet delay variation (\texttt{pdvMon}), data rate (\texttt{qosMonDatRate}) and congestion measurements (\texttt{qosMonConReq}). Each set of metrics can be reported either periodically or based on events, which are triggered when the requested thresholds are crossed.
 \end{itemize}
 
-Following the creation request, the \acs{NEF} maps the supplied \acs{QoS} parameters and coordinates with the \acs{PCF} to enforce the policy.
+Following the creation request, the \acs{NEF} maps the supplied \acs{QoS} references/parameters and coordinates with the \acs{PCF} to enforce the \acs{QoS} policy. As previously mentioned, the \texttt{notificationDestination} \acs{URI} included in the subscription body designates the callback endpoint to which the \acs{NEF} will deliver notifications. These notifications are conveyed through the \texttt{UserPlaneNotificationData} payload specifying a list of event reports for the user plane. From the possible notification event types, the following are of note for the \acs{QoS} use case: (i) \texttt{QOS\_GUARANTEED} and \texttt{QOS\_NOT\_GUARANTEED} to indicate whether the network is currently able (or unable) to meet the \acs{QoS} targets, (ii) \texttt{QOS\_MONITORING} to provide \acs{QoS} monitoring data and (iii) \texttt{USAGE\_REPORT} to provide consumption information according to the \texttt{usageThreshold} field set in the request.
 
-responds to the HTTP POST with the created \texttt{AsSessionWithQoSSubscription} resource, returning its \acs{URI} for subsequent management operations in the \texttt{self} parameter. 
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/flows/AsSessionWithQoSAPIFlow.png}
+    \caption{Information flow for the \textit{AsSessionwithQoS} \acs{API}}
+    \label{fig:flow:AsSessionWithQoSAPI}
+\end{figure}
 
-
-\plan{
-    \begin{enumerate}
-        \item Define the purpose of the API. Do not be repetitive comparetively to the first part of this section. At least rephrase it in a different way that doens't saturate the reader.
-        \item Describe the typical interaction flow: an application submits a QoS subscription request, provide the exact subscription request type (identifying the UE, IP flow, and desired QoS profile - map these to the specific fields); the NEF maps this to internal 5G QoS parameters and coordinates with the PCF to enforce the policy.
-        \item Highlight the key parameters exposed by the API (QoS reference identifiers, UE identifiers, flow descriptors, and notification endpoints) and clarify how they abstract away the complexity of internal QoS class mappings.
-        \item Position this API as the primary mechanism enabling network applications to express and enforce latency/bandwidth requirements, directly supporting use-case-specific network conditions.
-    \end{enumerate}
-}
+Figure \ref{fig:flow:AsSessionWithQoSAPI} highlights the described information flow for the \textit{AsSessionWithQoS} \acs{API}, obtained from the overall information flow described in TS 23.502~\cite{3GPP-23.502} and scoped to the interactions between the \acs{AF} and the \acs{NEF}, omitting internal network procedures beyond the \acs{NEF} (e.g. with the \acs{PCF}). Through this procedure, the \acs{NEF} \textit{AsSessionWithQoS} \acs{API} represents the primary programmable point in the testbed, enabling network applications to express and enforce \acs{QoS} requirements and the network conditions required to support the specific demands of each network application use case.
 
 \subsection{MonitoringEvent \acs{API}}
 
