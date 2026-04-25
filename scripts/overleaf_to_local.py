@@ -53,9 +53,12 @@ def load_ignore_patterns(ignore_list, ignore_file):
 
 
 def is_ignored(name, patterns):
-    basename = os.path.basename(name)
+    basename = os.path.basename(name.rstrip("/"))
+    name_stripped = name.rstrip("/")
     for pattern in patterns:
-        if fnmatch.fnmatch(basename, pattern) or fnmatch.fnmatch(name, pattern):
+        pattern_stripped = pattern.rstrip("/")
+        if (fnmatch.fnmatch(basename, pattern_stripped) or
+                fnmatch.fnmatch(name_stripped, pattern_stripped)):
             return True
     return False
 
@@ -101,6 +104,59 @@ def download_zip(url, cookie):
     )
 
 
+def get_local_files(local_path, ignore_patterns):
+    """Walk the local directory, skipping ignored files and directories."""
+    local_files = set()
+    for dirpath, dirnames, filenames in os.walk(local_path):
+        # Prune ignored dirs in-place so os.walk won't descend into them
+        dirnames[:] = [
+            d for d in dirnames
+            if not is_ignored(d, ignore_patterns)
+        ]
+        for filename in filenames:
+            if is_ignored(filename, ignore_patterns):
+                continue
+            abs_path = os.path.join(dirpath, filename)
+            rel_path = os.path.relpath(abs_path, local_path)
+            local_files.add(rel_path.replace(os.sep, "/"))
+    return local_files
+
+
+def report_additional_files(local_path, zip_names, ignore_patterns):
+    """Print files present locally but not in the Overleaf zip."""
+    # Collect non-directory zip entries (normalized)
+    overleaf_files = {
+        name for name in zip_names if not name.endswith("/")
+    }
+
+    local_files = get_local_files(local_path, ignore_patterns)
+
+    additional = sorted(
+        f for f in local_files
+        if f not in overleaf_files
+    )
+
+    YELLOW = "\033[33m"
+    BOLD   = "\033[1m"
+    RESET  = "\033[0m"
+
+    print()
+    print(f"{BOLD}{'─' * 60}{RESET}")
+    print(
+        f"{BOLD}{YELLOW}Additional Files: files not present in Overleaf project{RESET}\n"
+        f"{YELLOW}(possibly useless or outdated){RESET}"
+    )
+    print(f"{BOLD}{'─' * 60}{RESET}")
+
+    if additional:
+        for f in additional:
+            print(f"  {YELLOW}?  {f}{RESET}")
+    else:
+        print("  (none — local directory matches the Overleaf project)")
+
+    print(f"{BOLD}{'─' * 60}{RESET}")
+
+
 def sync_to_local(zip_bytes, local_path, ignore_patterns):
     local_path = os.path.abspath(local_path)
     os.makedirs(local_path, exist_ok=True)
@@ -142,7 +198,9 @@ def sync_to_local(zip_bytes, local_path, ignore_patterns):
             print(f"  Updated:  {name}")
             updated += 1
 
-    print(f"\nDone. {updated} file(s) updated, {skipped} unchanged, {ignored} ignored.")
+        print(f"\nDone. {updated} file(s) updated, {skipped} unchanged, {ignored} ignored.")
+
+        report_additional_files(local_path, names, ignore_patterns)
 
 
 def parse_args():
@@ -160,7 +218,7 @@ def parse_args():
         help="Local directory to sync into (default: ./)"
     )
     parser.add_argument(
-        "--ignore", nargs="+", metavar="PATTERN", default=['Makefile', 'scripts/*.py'],
+        "--ignore", nargs="+", metavar="PATTERN", default=['Makefile', 'scripts/*.py', '.git/', '.gitignore'],
         help="Filenames or patterns to skip (e.g. --ignore *.bak)"
     )
     parser.add_argument(
