@@ -26,6 +26,11 @@ TEXT_EXTENSIONS = {
     ".ini", ".yaml", ".yml", ".json", ".csv", ".log"
 }
 
+YELLOW = "\033[33m"
+RED    = "\033[31m"
+BOLD   = "\033[1m"
+RESET  = "\033[0m"
+
 
 def is_text_file(name):
     _, ext = os.path.splitext(name)
@@ -136,10 +141,6 @@ def report_additional_files(local_path, zip_names, ignore_patterns):
         if f not in overleaf_files
     )
 
-    YELLOW = "\033[33m"
-    BOLD   = "\033[1m"
-    RESET  = "\033[0m"
-
     print()
     print(f"{BOLD}{'─' * 60}{RESET}")
     print(
@@ -168,17 +169,16 @@ def sync_to_local(zip_bytes, local_path, ignore_patterns):
         names = zf.namelist()
         print(f"\nFound {len(names)} files in zip.")
 
-        updated = 0
+        ignored_files = []
+        updated_files = []
         skipped = 0
-        ignored = 0
 
         for name in names:
             if name.endswith("/"):
                 continue
 
             if is_ignored(name, ignore_patterns):
-                print(f"  Ignored:  {name}")
-                ignored += 1
+                ignored_files.append(name)
                 continue
 
             target = os.path.join(local_path, name)
@@ -195,10 +195,14 @@ def sync_to_local(zip_bytes, local_path, ignore_patterns):
 
             with open(target, "wb") as f:
                 f.write(new_content)
-            print(f"  Updated:  {name}")
-            updated += 1
+            updated_files.append(name)
 
-        print(f"\nDone. {updated} file(s) updated, {skipped} unchanged, {ignored} ignored.")
+        for name in ignored_files:
+            print(f"  {YELLOW}Ignored:  {name}{RESET}")
+        for name in updated_files:
+            print(f"  {RED}Updated:  {name}{RESET}")
+
+        print(f"\nDone. {len(updated_files)} file(s) updated, {skipped} unchanged, {len(ignored_files)} ignored.")
 
         report_additional_files(local_path, names, ignore_patterns)
 
