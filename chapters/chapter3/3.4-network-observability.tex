@@ -1,13 +1,55 @@
 \section{Network Observability}
 \label{chap:proposal:observability}
 
+In the previous section, it has been demonstrated how the \textit{AsSessionWithQoS} and \textit{AnalyticsExposure} \acsp{API} can be utilized to expose \acs{QoS} and network analytics to external applications through a standardized interface, respectively. Nevertheless, these \acsp{API} provided by the \acs{NEF} constitute only the northbound interface and do not autonomously generate the underlying measurements conveyed in its payloads. These must be actively and autonomously collected from the network and relevant network functions, such as the \acs{UPF}, \acs{SMF} and \acs{AMF}, and made available through a dedicated observation layer. Without such a layer, network applications lack the necessary mechanisms to detect degradations of \acs{QoS} and changes or anomalies within the network, directly risking the correct functioning of network applications.
+
+In Section \ref{sec:testingandvalidation:metrics}, Table \ref{tab:metrics:all} presented the full set of metrics and \acsp{KPI} collected across the researched State of the Art. From this broader survey, the metrics most relevant to the proposed testbed have been selected and presented in Table \ref{tab:proposal:observability:metrics}, grouped by their source \acs{NF} and identified relevance for their collection. Overall, the selection process prioritizes metrics that directly reflect the \acs{QoS} conditions under which network applications operate, and therefore help them assess and respond to changing network conditions. Furthermore, these metrics will serve as the foundation for validating network application behavior, allowing to attribute its correct or incorrect operation to its own implementation code rather than to external network conditions.
+
+\begin{table}[ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{gray!15}{white}
+\begin{tabular}{p{2.5cm} p{3.5cm} p{7cm}}
+\toprule
+\textbf{NF Source} & \textbf{Metric} & \textbf{Relevance} \\
+\midrule
+\acs{UPF} & \acs{UL}/\acs{DL} throughput (per \acs{PDU} session) & Primary indicator of bandwidth \acs{QoS} compliance; validates enforced \acs{QoS} profiles per slice and \acs{UE} \\
+\acs{UPF} & Packet loss rate & Reflects data plane reliability; relevant to latency-sensitive and reliability-critical applications \\
+\acs{UPF} & \acs{RTT} / latency & Measures end-to-end delivery delay; essential for applications with strict latency \acs{SLA} \\
+\acs{UPF} & Jitter & Captures delay variation; critical for real-time media and control-plane applications \\
+\acs{AMF} & \acs{UE} registration \& reachability state & Feeds the \textit{MonitoringEvent} \acs{API} subscription logic; triggers adaptive application behavior on connectivity changes \\
+\acs{SMF} & Active \acs{PDU} session count & Provides session-level visibility; supports correlation between session lifecycle events and observed metrics \\
+\bottomrule
+\end{tabular}
+\caption{Selected network observability metrics organized by source \acs{NF}, with relevance to the use cases in Table~\ref{tab:metrics:all}}
+\label{tab:proposal:observability:metrics}
+\end{table}
+
+As highlighted in Section~\ref{sec:testingandvalidation}, existing validation pipelines predominantly rely on manually triggered scripts or ad hoc procedures to collect network metrics. Such an approach may be justifiable in isolated research efforts where the purpose of metrics collection is tightly scoped to a single specific use case, but is inadequate for continuous, application-level validation in the context of a testbed. For the proposed testbed, delegating this responsibility to each application (and each client) individually would not only introduce redundant and inconsistent workflows, but would also be architecturally inappropriate, as network applications may operate outside the \acs{5G} core and network application developers, as external parties to the testbed, lack both the access and the expertise to collect the measurements themselves. Therefore, the objective is to establish a monitoring process that operates autonomously, without human intervention, and that allows network application developers to obtain insights on the network and continuously evaluate it against the declared \acs{QoS} requirements of each deployed application. This is particularly critical in multi-tenant scenarios, where multiple applications and slices must be monitored independently and simultaneously, and can be achieved in the two following ways: passive monitoring and active probing.
+
+\subsection{Passive Monitoring}
+
+Passive monitoring derives network metrics by capturing and inspecting traffic at strategic observation points within the \acs{5G} core, without injecting additional load into the network. In practice, this is realized through metric exporters that expose, through a standardized interface, internal telemetry data that is periodically collected at: (i) the \acs{NF} level and (ii) other key points of the network. This approach allows to collect, from the observed traffic, metrics such as \acs{UL} and \acs{DL} throughput, packet counts and transmission error rates.
+
+The main advantage of passive monitoring is in its non-intrusive nature. As it operates on traffic already present in the network, it does not consume additional bandwidth, limiting itself to observing the already existing traffic. However, it is contingent on the existence of active traffic and unlike active probing techniques, cannot directly measure the network conditions as experienced by the subscriber, meaning it is not suitable, for instance, to validate end-to-end performance throughout the entire lifetime of a network slice and its \acsp{UE}.
+
+\subsection{Active Probing}
+
+Active probing complements passive monitoring by generating synthetic test traffic between designated points (e.g. between the prober process and an \acs{UE}) to measure \acs{QoS} parameters on demand, independently of current application traffic. By leveraging active probing, it is possible to directly measure metrics such as \acs{RTT} and \acs{RTT} jitter, which are particularly relevant for latency sensitive applications and cannot be reliably inferred from passive counters alone. Instead, active probing directly captures these metrics from the end-user's perspective, i.e. a prober, making it suitable to validate the enunciated performance of a network slice, immediately after it has been provisioned.
+
+To achieve this goal in the testbed, active probing must be initiated automatically upon \acs{UE} and slice provisioning, rather than issued as a one-off manual request. This requires integration between the probing mechanism and the provisioning workflow, such that probe sessions are instantiated, configured, and terminated in alignment with the lifecycle of each network slice and its associated \acsp{UE}.
+
+\plan{Add Something more specific here in the form topics like: UE provisioned? -> Add probing target}
+
 \plan{
     \begin{enumerate}
         \item Establish network slicing as the baseline for sustaining the stringent network requirements required by a Network Application
-        \item Underline that passively relying on the slice/\acs{QoS} configuration spec is insufficient. Highlight the need for a mechanism to actively monitor the network against these requirements, as undetected violations of network requirements directly risk the correct functioning of the Network Application (connect these with the metrics specified earlier in the previous section).
+        \item Underline that passively relying on the slice/\acs{QoS} configuration spec is insufficient. Highlight the need for a mechanism to actively monitor the network against these requirements, as undetected violations of network requirements directly risk the correct functioning of the Network Application (connect these with the metrics specified earlier in the previous section - you cannot do this yet as the previous section is not yet written). Rephrase this differently by mentioning both the AsSessionWithQoS and AnalyticsExposure API and their role on exposing such metrics, but that they still need to actively be collected somehow from the network.
+        \item Introduce and enumerate the range of metrics that can be collected, organized by their NF source (in a table). Track each metric back to the metrics table defined at Section \ref{sec:testingandvalidation:metrics} and their respective use cases, justifying their selection. Some include: uplink/downlink from UPF for each PDU session. (this shouldn't include all of the metrics from the table, just the most relevant ones)
+        \item Highlight the need for a fully automated monitoring process without manual one-off scripts or hperf requests, with the goal of validating network applications, against the declared \acs{QoS} requirements. Present the two mechanisms capable of network observability: passive monitoring and active probing
+        \item Detail passive monitoring and highlighting the capture of the network's traffic and its inspection to obtain network metrics, such as throughput, packet counts and error rats
+        \item Introduce active probing as a partial solution to this problem, as automatic probing per-slice/per-ue needs to be triggered in an autonomous way upon provisioning a slice/UE. Give the example of RTT and RTT jitter as metrics obtained from this monitoring process.
         \item Include something about closed loop optimization and how having network observability and obtaining network metrics contribute to this
-        \item Introduce and enumerate the range of metrics that can be collected, organized by their NF source. Track each metric back to the metrics table defined at Section \ref{sec:testingandvalidation:metrics} and their respective use cases, justifying their selection. Some include: uplink/downlink from UPF for each PDU session. (Should this be the final list we're collecting or all of them - from the table?)
-        \item Highlight the need for a fully automated monitoring process without manual one-off scripts or hperf requests, with the goal of validating network applications, against the declared \acs{QoS} requirements.
-        \item Introduce active probing as a partial solution to this problem, as automatic probing per-slice/per-ue needs to be triggered in an autonomous way upon provisioning a slice/UE.
     \end{enumerate}
 }
