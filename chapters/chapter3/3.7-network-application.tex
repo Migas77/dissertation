@@ -1,23 +1,29 @@
 \section{\acs{PoC} Network Application}
 \label{chap:proposal:netapp}
 
+The exposure interfaces provided by the testbed through \acs{NEF} and CAMARA northbound \acsp{API}, and protected by \acs{CAPIF}, will support the development and validation of future network applications. With them, developers can interact programmatically with the network and leverage its capabilities to provide services that cater to industry verticals and their associated use cases. In Section \ref{sota:networkapplications:usecases}, there have been highlighted a series of possible network applications across distinct vertical industries and scenarios, such as \acl{CAM}, \acl{T&L}, Video Streaming and \acf{PPDR}.
+
+Among these, \acs{PPDR} emerges as the most demanding in terms of service requirements, as failures in communication or service continuity may compromise the outcome of emergency operations, with potentially irreversible consequences. More specifically, scenarios such as \acs{IOPS}~\cite{IOPS5G} and \acs{FIDEGAD}~\cite{FIDEGAD5G} impose strict requirements on communication continuity, latency, and bandwidth, under dynamic and often degraded network conditions. This makes \acs{PPDR} an ideal vertical context for a \acl{PoC}, where a network application operating under such conditions would necessarily have to be deeply integrated with the \acs{QoS}, Monitoring, and Analytics interfaces provided by the testbed to securely adapt to network changes and enforce the service guarantees that mission-critical services demand.
+
+The \acs{PoC} application is designed within the \acs{FIDEGAD} scenario~\cite{FIDEGAD5G}, in which drone-based fire detection and ground assistance capabilities are deployed to support emergency response teams in wildfire situations. Inherently, the envisioned network application consists of two main components: (i) a camera client, intended to be deployed at the drone (i.e. the \acs{UE}), that captures live video and streams it over a \acs{5G} connection; and (ii) a server, intended to be deployed at the \acs{MEC} or the cloud, that receives the stream, processes it through an \acs{AI} fire detection model and presents the results through a web interface accessible to ground operators, raising an alert whenever fire is identified in a frame. Given the mission-critical nature of this scenario, the network application must sustain continuous video delivery and respond dynamically to changes in network conditions, adjusting its \acs{QoS} profile as handovers are performed between cells, which naturally occurs as the drone surveys different geographical areas in search for fire outbreaks.
+
 \plan{
     \begin{enumerate}
-        \item Introduce the PPDR domain as the vertical context for the PoC, drawing from the use cases discussed in Section \ref{sota:networkapplications:usecases} (IOPS, FIDEGAG). Highlight the particular relevance of PPDR scenarios for exercising network exposure interfaces: they require reliable, low-latency communication under dynamic and potentially degraded network conditions, making QoS enforcement and continuous network monitoring essential, not optional, capabilities.
-        \item Revisit the use cases from Section \ref{sota:networkapplications:usecases} and corresponding internal details (\acs{NEF}/CAMARA \acs{API} suite) from Section \ref{sec:testingandvalidation:netapps}:
-        \begin{itemize}
-            \item Dynamic \acs{QoS} adaptation enforced through CAMARA \acs{QoS} \acs{API} in response to either geographical changes obtained with CAMARA Device Location \acs{API} in digital twin / \acs{CAM} scenarios, or to network quality deterioration (or to video quality deterioration in case of video streaming/broadcast).
-            \item \acs{PPDR}: \acs{IOPS}, \acs{FIDEGAG}
-        \end{itemize}
+        \item Introduce the PPDR domain as the vertical context for the PoC, drawing from the use cases discussed in Section \ref{sota:networkapplications:usecases} (IOPS, FIDEGAD). Highlight the particular relevance of PPDR scenarios for exercising network exposure interfaces: they require reliable, low-latency communication under dynamic and potentially degraded network conditions, making QoS enforcement and continuous network monitoring essential, not optional, capabilities.
         \item State the objective of the \acs{PoC} application: a Public Protection and Disaster Relief (PPDR) network application developed within the FIDEGAD scenario, where drone-based fire detection and ground assistance capabilities are leveraged to support emergency response teams in wildfire situations. Reenforce this as an ongoing mission-critical operation, dynamically adapting QoS profile in response to changes in network conditions or operational context.
-        \item Derive the application requirements from the use case (NEED TO VERIFY THESE REQUIREMENTS):
+        \item Derive the application requirements from the use case and divide them between Functional Requirements and non functional requirements. Here we have some examples of what's expected:
         \begin{itemize}
-            \item Guaranteed minimum UL throughput for video/telemetry data transmission;
+            \item Guaranteed minimum UL/DL throughput for video data transmission;
             \item Bounded RTT and low jitter for real-time command and control;
             \item Continuous monitoring of network performance against these requirements;
             \item Ability to escalate to a higher-priority QoS profile when degradation is detected or predicted.
         \end{itemize}
         \item The implemented exposure interfaces, provided by the CAMARA and NEF northbound \acsp{API}, and secured by \acs{CAPIF}, will serve as the foundation for the development and validation of future network applications, by a variety of developers.
+        \item Revisit the use cases from Section \ref{sota:networkapplications:usecases} and corresponding internal details (\acs{NEF}/CAMARA \acs{API} suite) from Section \ref{sec:testingandvalidation:netapps}:
+        \begin{itemize}
+            \item Dynamic \acs{QoS} adaptation enforced through CAMARA \acs{QoS} \acs{API} in response to either geographical changes obtained with CAMARA Device Location \acs{API} in digital twin / \acs{CAM} scenarios, or to network quality deterioration (or to video quality deterioration in case of video streaming/broadcast).
+            \item \acs{PPDR}: \acs{IOPS}, \acs{FIDEGAD}
+        \end{itemize}
         \item Map each requirement to the corresponding network interface, showing how the PoC will interact with the implemented components to fulfill its goals:
         \begin{itemize}
             \item CAPIF: onboarding and authenticated discovery of all APIs;
@@ -37,6 +43,6 @@
             \item  the change of \acs{QoS} profile in response to being unable to meet the application requirements or in response to a location change (CAMARA QoD API)
         \end{enumerate}
         \item Explain how the \acs{PoC} exercises all implemented interfaces end-to-end: it onboards via CAPIF, consumes CAMARA APIs (Application Profiles to declare its requirements, Connectivity Insights Subscriptions to monitor performance, QoD to enforce them)
-        \item Include sequence diagram and sequence diagram this time prioritizing the NEF. Showcase the added complexity of the NEF implementation flow comparetively to CAMARA APIs.
+        \item Include another sequence diagram this time prioritizing the NEF. Showcase the added complexity of the NEF implementation flow comparatively to CAMARA APIs.
     \end{enumerate}
 }
