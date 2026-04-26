@@ -18,3 +18,7 @@
   \vspace{0.5em}%
 }
 \usepackage{pdflscape}              % horizontal pages
+\usepackage{enumitem}               % custom enumerations
+\newenvironment{custenumerate}[1]
+    {\begin{enumerate}[label=#1\arabic*., labelwidth=2em, leftmargin=3.75em, align=left]}
+    {\end{enumerate}}
