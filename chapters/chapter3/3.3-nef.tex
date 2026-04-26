@@ -9,6 +9,7 @@ In the context of the proposed testbed architecture, three \acs{NEF} northbound 
 
 
 \subsection{AsSessionWithQoS \acs{API}}
+\label{chap:proposal:nef:AsSessionWithQoS}
 
 The \textit{AsSessionWithQoS} \acs{API}, defined in \acs{3GPP} TS~29.122~\cite{ETSI_TS_129_122_V18_8_0}, allows applications to configure sessions indicating the desired level of \acs{QoS} for a given traffic flow. However, passively relying on the \acs{QoS} session established via this \acs{API} is not sufficient, as undetected violations of \acs{QoS} requirements directly risk the correct functioning of the Network Application. Therefore, in order to ensure better service experience and avoid service interruption, the \textit{AsSessionWithQoS} \acs{API} also provides multiple mechanisms to detect and help mitigate the effects of \acs{QoS} downgrades and network anomalies.
 
@@ -35,6 +36,7 @@ Following the creation request, the \acs{NEF} maps the supplied \acs{QoS} refere
 Figure \ref{fig:flow:AsSessionWithQoSAPI} highlights the described information flow for the \textit{AsSessionWithQoS} \acs{API}, obtained from the overall information flow described in TS 23.502~\cite{3GPP-23.502} and scoped to the interactions between the \acs{AF} and the \acs{NEF}, omitting internal network procedures beyond the \acs{NEF} (e.g. with the \acs{PCF}). Through this procedure, the \acs{NEF} \textit{AsSessionWithQoS} \acs{API} represents the primary programmable point in the testbed, enabling network applications to express and enforce \acs{QoS} requirements and the network conditions required to support the specific demands of each network application use case.
 
 \subsection{MonitoringEvent \acs{API}}
+\label{chap:proposal:nef:MonitoringEvent}
 
 \plan{
     \begin{enumerate}
@@ -46,6 +48,7 @@ Figure \ref{fig:flow:AsSessionWithQoSAPI} highlights the described information f
 }
 
 \subsection{AnalyticsExposure \acs{API}}
+\label{chap:proposal:nef:AnalyticsExposure}
 
 \plan{
     \begin{enumerate}
