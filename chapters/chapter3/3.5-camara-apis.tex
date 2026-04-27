@@ -1,12 +1,11 @@
 \section{CAMARA \acsp{API} Integration}
 \label{chap:proposal:camara}
 
-\plan{
-    \begin{enumerate}
-        \item Reestablish the benefits of the CAMARA API initiative and the goal of integrating it with the NEF to simplify acess of network applications to network capabilities
-        \item Introduce the following subsections with Application Profiles and Connectivity Insights Subscriptions APIs as the proposed solution to the previously mentioned issue.
-    \end{enumerate}
-}
+The prior section established how the testbed can autonomously collect network metrics and expose them through the \acs{NEF} \textit{AnalyticsExposure} \acs{API}, making them accessible to third parties. Network application developers who wish to incorporate analytics and adaptive network behavior into their applications must interact with the network through this and other \acs{NEF} interfaces. This can be accomplished in one of the following ways: (i) interacting directly with the \acs{NEF} northbound \acsp{API}, which requires familiarity with the \acs{3GPP} ecosystem, specifications and data models, imposing a significant burden on developers lacking the necessary telco expertise; or (ii) interacting with the network through CAMARA \acsp{API}, which abstract the complexity and underlying interactions with the \acs{NEF} and any other components contributing to the offered service, through a user-friendly interface.
+
+The CAMARA initiative focuses on standardizing \acsp{API} at the northbound of the network, defining what capabilities are exposed and how application developers can interact with them to easily integrate network behavior into their applications. However, the southbound realization of those northbound \acsp{API}, i.e. their internal implementation, is deliberately left to each network operator. Nevertheless, \acs{GSMA} produces guideline documents, such as \textit{\acs{NBI} \acsp{API} Realisation in the \acs{SBI}}~\cite{gsmaNbiRealization}, describing how CAMARA \acs{API} operations can be realized through the \acsp{API} and procedures available in the operator's network, including via \acs{NEF} northbound interfaces.
+
+The CAMARA \acsp{API} integration proposed in this section is derived from this reference realization model, mapping CAMARA operations to the corresponding \acs{NEF} interactions. The following subsections detail the adopted \acs{NBI} realization procedure for the following CAMARA \acsp{API}: \textit{Application Profiles} and \textit{Connectivity Insights Subscriptions}.
 
 \subsection{Application Profiles \acs{API}}
 
