@@ -1,0 +1,26 @@
+---
+config:
+  sequence:
+    mirrorActors: false
+  theme: redux
+  fontFamily: "'Open Sans Variable', sans-serif"
+  themeVariables:
+    fontFamily: "'Open Sans Variable', sans-serif"
+    noteBkgColor: '#F5ECD7'
+    noteBorderColor: '#A0351B'
+  look: neo
+---
+sequenceDiagram
+  participant AF
+  box Operator Platform / Testbed
+    participant CAMARA as CAMARA<br/>Application Profiles API
+    participant REPO as Application Profiles<br/>Repository
+    participant NEF
+  end
+
+  rect rgb(255, 255, 255)
+    AF->>CAMARA: 1. POST /application-profiles/v0.5/application-profiles<br>[networkQualityThresholds, computeResources]
+    Note over CAMARA,REPO: 2. Store Application Profile
+    CAMARA->>AF: 3. 200 OK [applicationProfileId<br>networkQualityThresholds, computeResources]
+  end
+    

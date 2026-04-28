@@ -9,14 +9,23 @@ The CAMARA \acsp{API} integration proposed in this section is derived from this 
 
 \subsection{Application Profiles \acs{API}}
 
-\plan{
-    \begin{enumerate}
-        \item Define the purpose of the Application Profiles API: "enables developers to share essential information about their applications that is relevant for network and CAMARA APIs decision-making"
-        \item Include a sequence diagram for the NBI Realization of the Application Profiles API (extend from GSMA Paper and cite).
-        \item Clarify the role of the Application Profiles API as a shared profile repository designed to be consumed by other CAMARA APIs and network systems to drive decisions
-    \end{enumerate}
-}
+The \textit{Application Profiles} \acs{API} enables network application developers to share essential information about their applications with the network and other CAMARA \acsp{API}, informing their behavior and decisions~\cite{CAMARAApplicationProfiles}. The \acs{API} focuses on defining network quality thresholds and compute resource requirements needed by the application, which naturally translate into a broad range of use cases. Across media streaming, online gaming, and video conferencing, services can benefit from the use of such an \acs{API} to verify network conditions (e.g. bandwidth, latency, jitter, packet loss) against the desired requirements and dynamically adapt their behavior accordingly. The same profile may also assist network operators in allocating resources and defining \acsp{SLA}, based on the application’s defined needs.
 
+The following section details how the \textit{Application Profiles} \acs{API} can be implemented according to the testbed's architecture, describing the sequence of interactions performed from the moment a request reaches the CAMARA \acs{API}.
+
+\subsubsection{\acs{NBI} Realization}
+
+Figure~\ref{fig:flow:CAMARAapplicationProfiles} illustrates the \acs{NBI} realization for the \textit{Application Profiles} \acs{API}, adapted from the \acs{GSMA} reference model~\cite{gsmaNbiRealization}. The \acs{API} exposes all the endpoints necessary to perform all \acs{CRUD} operations on an Application Profile~\cite{CAMARAApplicationProfilesRelease}. An Application Profile, expressed by the \texttt{ApplicationProfile} schema, defines application thresholds provided for network quality, including packet delay budget, minimum downstream and 
+upstream rates, packet error loss rate and jitter, as well as compute resource requirements, such as target minimum \acs{CPU}, memory and \acs{GPU} specification.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/flows/CAMARAapplicationProfiles.pdf}
+    \caption{\acs{NBI} Realization for Application Profiles \acs{API}~\cite{gsmaNbiRealization}}
+    \label{fig:flow:CAMARAapplicationProfiles}
+\end{figure}
+
+The sequence diagram focuses on the application profiles creation procedure. The \acs{AF}, e.g. a network application, submits a POST request to the CAMARA \acs{API} endpoint specifying the profile application requirements through the \texttt{ApplicationProfileRequest} record~\cite{CAMARAApplicationProfilesRelease}. On success, CAMARA stores the profile on a local repository and returns the created resource identified by a unique profile identifier. This identifier will subsequently be referenced/used in all further \acs{API} operations (retrieval, update and deletion), or by any other CAMARA \acsp{API} that consume the profile. Throughout this workflow, there is no interaction with the \acs{NEF} or the \acs{5GC}. This emphasizes the role of the \textit{Application Profiles} \acs{API} as a management interface over a shared profile repository, storing requirement declarations that other CAMARA \acsp{API} and network systems may reference/use to make their own decisions, as is the case of the \texttt{Connectivity Insights Subscriptions} \acs{API}, discussed in the following section.
 
 \subsection{Connectivity Insights Subscriptions \acs{API}}
 
@@ -24,7 +33,6 @@ The CAMARA \acsp{API} integration proposed in this section is derived from this 
     \begin{enumerate}
         \item Define the purpose of the Connectivity Insights Subscriptions API: "enables application developers to receive continuous updates about network quality through event notifications. This allows developers to monitor network performance for their application users and receive alerts when network conditions change, helping them take informed decisions related to optimizing the application’s end user experience."
         \item Include a sequence diagram for the \acs{NBI} Realization of the Connectivity Insights Subscriptions \acs{API} (cite GSMA paper and explain changes / different approach)
-        \item Mention such \acsp{API} are standardized at the interface level with inner logic being implementation-specific and abstracted away from network application developers.
         \item Reiterate the importance of the Application Profiles API, regarding the Connectivity Insights API, which provides, through application profiles, the network requirements of the application to be monitored through the Connectivity Insights API.
         \item Highlight mapping of application profile fields into the requests to \acs{NEF} analytics exposure \acs{API}, reflecting the network application performance requirements.
         \item Emphasize different suite of \acs{NEF} analytics events utilized in the sequence diagram in order to leverage the network metrics provided by the \acs{NEF} analytics exposure \acs{API}, highlighted at Section \ref{chap:proposal:nef}, to support the network requirements specified in the CAMARA Application Profile (maybe include swagger?).
