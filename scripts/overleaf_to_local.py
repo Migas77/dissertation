@@ -119,11 +119,10 @@ def get_local_files(local_path, ignore_patterns):
             if not is_ignored(d, ignore_patterns)
         ]
         for filename in filenames:
-            if is_ignored(filename, ignore_patterns):
+            rel_path = os.path.relpath(os.path.join(dirpath, filename), local_path).replace(os.sep, "/")
+            if is_ignored(rel_path, ignore_patterns):
                 continue
-            abs_path = os.path.join(dirpath, filename)
-            rel_path = os.path.relpath(abs_path, local_path)
-            local_files.add(rel_path.replace(os.sep, "/"))
+            local_files.add(rel_path)
     return local_files
 
 
@@ -222,7 +221,7 @@ def parse_args():
         help="Local directory to sync into (default: ./)"
     )
     parser.add_argument(
-        "--ignore", nargs="+", metavar="PATTERN", default=['Makefile', 'scripts/*.py', '.git/', '.gitignore'],
+        "--ignore", nargs="+", metavar="PATTERN", default=['Makefile', 'scripts/*.py', '.git/', '.gitignore', '*.mmd', '*.svg'],
         help="Filenames or patterns to skip (e.g. --ignore *.bak)"
     )
     parser.add_argument(
