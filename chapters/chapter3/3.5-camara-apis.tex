@@ -29,9 +29,10 @@ The sequence diagram focuses on the application profiles creation procedure. The
 
 \subsection{Connectivity Insights Subscriptions \acs{API}}
 
+The \textit{Connectivity Insights Subscriptions} \acs{API} allows developers to receive continuous updates about network quality through event notifications~\cite{CAMARAConnectivityInsightsSubscriptions}. More specifically, applications can leverage this \acs{API} to monitor network conditions in real-time, receiving alerts when quality metrics fall outside the thresholds defined in their application profile, declared via the CAMARA \textit{Application Profiles} API. Therefore, this \acs{API} represents the actual mechanism that makes the use cases specified in the previous section possible. Services which previously used profiles to declare their throughput thresholds, can now subscribe to receive notifications the moment those thresholds are breached, allowing them to take adaptive/proactive measures and prevent service disruption.
+
 \plan{
     \begin{enumerate}
-        \item Define the purpose of the Connectivity Insights Subscriptions API: "enables application developers to receive continuous updates about network quality through event notifications. This allows developers to monitor network performance for their application users and receive alerts when network conditions change, helping them take informed decisions related to optimizing the application’s end user experience."
         \item Include a sequence diagram for the \acs{NBI} Realization of the Connectivity Insights Subscriptions \acs{API} (cite GSMA paper and explain changes / different approach)
         \item Reiterate the importance of the Application Profiles API, regarding the Connectivity Insights API, which provides, through application profiles, the network requirements of the application to be monitored through the Connectivity Insights API.
         \item Highlight mapping of application profile fields into the requests to \acs{NEF} analytics exposure \acs{API}, reflecting the network application performance requirements.
