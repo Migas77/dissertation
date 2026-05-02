@@ -1,0 +1,31 @@
+@startuml
+left to right direction
+
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+}
+skinparam classAttributeIconSize 0
+skinparam CircledCharacterRadius 0
+skinparam CircledCharacterFontSize 0
+skinparam minClassWidth 130
+skinparam Padding 3
+
+
+hide members
+hide circle
+
+class "Network Slice" as NS
+class "Network Slice\nSubnet" as NSS
+class "Network Function" as NF
+class "Core Network\nFunction" as CNF
+class "Access Network\nFunction" as ANF
+
+NS " 0..*" o-- " 0..*" NSS : " contains"
+NSS "0..* " o-- " 0..*    " NSS : "contains"
+NSS " 0..* " o-- " 0..* " NF : " contains"
+NF <|-- CNF
+NF <|-- ANF
+
+@enduml

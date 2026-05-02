@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+
+skinparam monochrome true
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+}
+skinparam minClassWidth 130
+skinparam Padding 3
+
+rectangle "Communication Service\nManagement Function" as CSMF
+rectangle "Network Slice\nManagement Function" as NSMF
+rectangle "Network Slice Subnet\nManagement Function" as NSSMF
+
+CSMF --> NSMF : delegates to
+NSMF --> NSSMF : delegates to
+
+@enduml

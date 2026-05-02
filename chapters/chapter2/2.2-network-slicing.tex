@@ -1,5 +1,7 @@
 \section{Network Slicing} \label{sota:slicing}
 
+\later{add NSaaS somewhere}
+
 \acs{5G} networks have been regarded by the industry and academia as a critical advancement in the support of next generation vertical applications, tailored to different service requirements and characteristics. This capability is accomplished through network slicing, which allows the creation of \acs{E2E} logical networks (network slices) on a common underlying infrastructure. Network slices are  self-contained, mutually isolated, independently managed and controllable to support programmable multi-service and multi-tenancy environments on a shared infrastructure~\cite{slicingUsingSdnNfvTaxonomy}.
 
 Network Slices support a variety of services, expanding the traditional \acs{5G} service types introduced earlier (\acs{eMBB}, \acs{URLLC} and \acs{mMTC}) into a standardized set of \acf{SST} values, with \acs{SST} values 1,2,3,4,5 and 6 corresponding to \acs{eMBB}, \acs{URLLC}, \acs{mMTC}, \acf{V2X}, \acf{HMTC} and \acf{HDLLC}, respectively~\cite{ETSI_TS_123_501_V16_9_0}. 
@@ -30,6 +32,32 @@ The \acs{NSI} encompasses the full set of Network Function instances and the req
 
 \end{itemize}
 
+
+\subsection{Network Slice Management Functions}
+
+The management of network slices spans across the various parts of the network, including both \acs{3GPP} managed network components, such as the \acf{CN} and \acf{AN}, as well as non-\acs{3GPP} components~\cite{ETSI_MANAGEMENT_ORCHESTRATION_CONCEPTS}. For components outside the \acs{3GPP} domain, such as the \acf{TN}, which supports connectivity between the \acs{CN} and the \acs{AN}, the management system must coordinate with the corresponding external management systems to communicate the network slice requirements. These include \acs{TN} topology requirements and individual \acs{TN} links' \acs{QoS} attributes requirements.
+
+For the purpose of \acs{NSI} management, an \acs{NSI} can be divided into one or more \acfp{NSSI}, each representing the instantiation of a \acf{NSS}. As outlined in Figure \ref{fig:slicing:class:diagram}, a \acs{NSS} represents a group of network functions (physical and/or virtualized) and their corresponding resources that form part or all of the constituents of a network slice~\cite{ETSI_MANAGEMENT_ORCHESTRATION_CONCEPTS}. It may include instances of \acs{CN} and/or \acs{AN} network functions, along with thier associated \acs{TN} requirements, catering to both \acs{3GPP} and non-\acs{3GPP} domains across the \acs{5G} network~\cite{ETSI_MANAGEMENT_ORCHESTRATION_CONCEPTS}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/network-slice-class-diagram.pdf}
+    \caption{Network Slice Information Model~\cite{3GPP-28.801}}
+    \label{fig:slicing:class:diagram}
+\end{figure}
+
+This section identifies three management functions involved in the management and orchestration of network slicing and, consequently, in the support of communication services: the \acf{CSMF}, the \acf{NSMF} and the \acf{NSSMF}. These management functions are organized in a hierarchical structure, where each function delegates part of the related procedures to the next function immediately after it, as showcased in Figure \ref{fig:slicing:management_functions}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/network-slice-mgmnt-func.pdf}
+    \caption{Network Slicing Management Functions~\cite{3GPP-28.801}}
+    \label{fig:slicing:management_functions}
+\end{figure}
+
+The \acs{CSMF} is responsible for managing the communication services offered by an operator, receiving the requirements requested by end-customers and translating them into concrete network slice requirements, such as network type, network capacity and \acs{QoS} requirements~\cite{3GPP-28.801}. This functionality is closely aligned with that of an \acs{OSS}/\acs{BSS}, which will be further discussed in Section \ref{sota:bss-oss-mano}. These requirements are then forwarded to the \acs{NSMF}, which handles the management of \acsp{NSI} based on the provided requirements. Lastly, the \acs{NSMF} converts the network slice requirements to network slice subnet requirements, which are subsequently delegated to the \acs{NSSMF} for managing and orchestrating \acsp{NSSI}~\cite{3GPP-28.801}.
+
+Lastly, it is important to reiterate once again that, when providing an \acs{E2E} communication service, the network may rely on non-\acs{3GPP} parts (e.g. the \acs{TN}) in addition to the network components defined in \acs{3GPP}: the \acs{CN} and \acs{AN}. With this goal, the \acs{3GPP} management system derives each domain's requirements from the customer's service requirements and forwards them to the corresponding domain management systems (both \acs{3GPP} and non-\acs{3GPP}), coordinating the exchange of data between them~\cite{ETSI_MANAGEMENT_ORCHESTRATION_CONCEPTS}. Regarding network slicing, on the \acs{3GPP} side, instantiating an \acs{NSI} with \acs{RAN} and \acs{CN} components may entail defining  each domain's component as a separate \acs{NSSI}, potentially shared across multiple \acsp{NSI}~\cite{3GPP-28.801}. On the non-\acs{3GPP} side, when the \acs{NSI} includes \acsp{VNF}, the \acs{NSSMF}, per request from the \acs{NSMF}, creates the needed \acsp{NSSI}, coordinating with an external management system, namely \acs{NFV-MANO}, to configure and instantiate the required \acsp{VNF} and \acsp{NS}, scaling them as needed for the operations of the \acs{NSI}, taking into account with other \acsp{NSSI}. Additionally, the NSSMF triggers the network management system to handle the application-level configuration of the NFs used by the NSSI, similarly accounting for sharing with other NSSIs~\cite{3GPP-28.801}.
 
 \subsection{Network Slice Managers}
 
