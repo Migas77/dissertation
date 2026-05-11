@@ -118,3 +118,83 @@ ECSAddress                   & $\times$             & $\times$ \\
 \rowcolor{white}
 RSLPPIParametersProvisioning & $\times$             & $\times$ \\
 \end{longtable}
+
+\clearpage
+\section{Slice Manager \acs{API} Payloads}
+\label{appendix:slicemanager:payloads}
+
+\begin{listing}[H]
+\begin{minted}{json}
+{
+  "id": "string",
+  "name": "string",
+  "administrative_state": "LOCKED",
+  "operational_state": "ENABLED",
+  "coverage_area": [
+    "string"
+  ],
+  "sst": 0,
+  "sd": "string",
+  "dnn": "string",
+  "prioritylabel": 0,
+  "reliability": 0,
+  "dllatency": 0,
+  "ullatency": 0,
+  "delaytolerance": "SUPPORTED",
+  "dldeterministiccomm": "SUPPORTED",
+  "uldeterministiccomm": "SUPPORTED",
+  "dlguathptperue": 0,
+  "ulguathptperue": 0,
+  "dlmaxthptperue": 0,
+  "ulmaxthptperue": 0,
+  "plmnid": 0,
+  "maxnumberofues": 0,
+  "dlguathptperslice": 0,
+  "ulguathptperslice": 0,
+  "dlmaxthptperslice": 0,
+  "ulmaxthptperslice": 0,
+  "dlmaxpktsize": 0,
+  "ulmaxpktsize": 0,
+  "maxnumberofpdusessions": 0,
+  "nroperatingbands": "string",
+  "slicesimultaneoususe": "0",
+  "energyefficiency": "eMBBEEPerfReq",
+  "termdensity": 0,
+  "activityfactor": 0,
+  "resourcesharinglevel": "shared",
+  "uemobilitylevel": "stationary",
+  "uespeed": 0,
+  "dldeterminperiodicity": 0,
+  "uldeterminperiodicity": 0,
+  "survivaltime": 0,
+  "positioningtype": "CIDE_CID",
+  "positioningfrequency": "PERSEC",
+  "positioningaccuracy": 0,
+  "synchronicitysupport": "NOT_SUPPORTED",
+  "synchronicityaccuracy": 0,
+  "nssaasupport": "SUPPORTED",
+  "n6protection": []
+}
+\end{minted}
+\caption{Network Slice Payload, Slice Manager \acs{API} \later{add ref}}
+\label{code:slicemanager:payloads:netslice}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}{json}
+{
+  "IMSI": 0,
+  "numIMSIs": 0,
+  "slice": "string",
+  "IPV4": "string",
+  "IPV6": "string",
+  "AMDATA": true,
+  "DEFAULT": "string",
+  "UEcanSendSNSSAI": "string",
+  "AMBRUP": 0,
+  "AMBRDW": 0
+}
+\end{minted}
+\caption{User Equipment Payload, Slice Manager \acs{API} \later{add ref}}
+\label{code:slicemanager:payloads:ue}
+\end{listing}
