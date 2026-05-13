@@ -1,12 +1,43 @@
 \section{\acs{NEF}}
 \label{chap:impl:nef}
 
+As it has been repeatedly noted throughout this document, the \acs{NEF} is the primary network function of the \acs{5GC} \acs{SBA} responsible for the exposure of network capabilities to third parties. Following the analysis of the available \acs{NEF} implementations conducted in Section~\ref{exposure:NEFimplementations}, the NEFSim~\cite{NEFsim}, as extended by \acs{ITAv}~\cite{NEFemulatorAtnog}, was selected as the most suitable choice for this role within the testbed. This selection was motivated by a variety of factors:
+
+\begin{enumerate}
+    \item \textbf{Wider coverage of \acs{NEF} northbound \acs{API} suite}~\cite{ETSI_TS_129_522_V18_11_0}\textbf{:} including the \textit{PfdManagement}, \textit{MonitoringEvent}, \textit{AsSessionWithQoS} and \textit{TrafficInfluence} \acsp{API} \fix{COMPLETE THIS};
+    \item \textbf{Built-in Integration with OpenCAPIF:} among the analyzed implementations, it is the only one which supports, or even considers, authentication, authorization and service discovery capabilities, using the \acs{CAPIF} framework;
+    \item \textbf{Simulated Environment:} the NEFSim exposes the standardized set of \acs{NEF} northbound \acsp{API}, allowing network application developers to develop and validate network applications, without requiring access to a fully featured \acs{NEF} instance;
+\end{enumerate}
+
+Hence, in its original purpose, the NEFSim establishes a simulated environment which exposes the set of \acs{NEF} northbound \acsp{API}, without depending on an underlying \acs{5G} core deployment. This way, in the original design, all responses produced by the \acsp{API} would be completely decoupled from actual network state, essentially operating as stubs that conform to the specification. This approach is not suitable for a real testbed, where customers expect the opportunity to develop and validate network application behavior against live traffic, with real \acsp{UE} and live \acs{QoS} sessions. Use cases that depend on network conditions observed during execution, such as throughput and latency, cannot be verified through simply simulated responses.
+
+Therefore, at \acs{ITAv}, the NEFSim implementation is directly integrated with the 5GAIner infrastructure, extending its role beyond a purely simulated environment and allowing application developers to actually incorporate network behavior into their business logic. This is the case for the \textit{AsSessionWithQoS} \acs{API}, but is not the case for all northbound \acsp{API} specified in Appendix~\ref{appendix:NEF}. Thus, in the context of this dissertation, the \textit{AnalyticsExposure} \acs{API} was integrated with the NEFSim implementation, to expose real network metrics to external consumers. By combining these two \acsp{API}, network application developers are equipped with the instruments to both influence and observe network behavior according to their application requirements: configuring and enforcing specific \acs{QoS} requirements through the \textit{AsSessionWithQoS} \acs{API}, while monitoring and reacting to live network conditions, with the \textit{AnalyticsExposure} \acs{API}.
+
+\subsection{AnalyticsExposure \acs{API}}
+\label{chap:impl:nef:AnalyticsExposure}
+
+This section delves into the implementation details of the \textit{AnalyticsExposure} \acs{API}, as defined in \acs{3GPP} TS~29.522~\cite{ETSI_TS_129_522_V18_11_0}. As previously mentioned, the \textit{AnalyticsExposure} \acs{API} allows external consumers to subscribe to network analytics and receive notifications periodically or when specific network conditions are met. The implementation focuses on exposing real network metrics by retrieving them from the configured Prometheus, defined at Section~\ref{chap:impl:observability}, and exposing them through the \acs{API}, according to the specification~\cite{ETSI_TS_129_522_V18_11_0}. Code Block~\ref{code:impl:nef:analyticsexposure:structure} showcases the structure of the implemented \acs{API} in NEFSim's codebase~\cite{NEFemulatorAtnog}, with highlighted fields indicating the changes introduced in the context of this feature.
+
+\begin{listing}[H]
+\dirtree{%
+% .1 \textcolor{templatecolor}{PLACEHOLDER}.
+.1 \hspace{0.1em} app/ .
+.2 api/ .
+.2 capif/ .
+.2 core/ .
+.2 crud/ .
+.2 db/ .
+.2 drivers/ .
+.2 models/ .
+.2 schemas/ .
+.2 \ldots .
+}
+\caption{NEFSim \textit{AnalyticsExposure} \acs{API} Implementation Structure}
+\label{code:impl:nef:analyticsexposure:structure}
+\end{listing}
+
 \plan{
     \begin{enumerate}
-        \item Reestablish NEF as the main network function responsible for the exposure of the network's capabilities and justify the choice of the NEF Emulator for performing this role
-        \item Highlight that despite the NEF Emulator providing a robust set of NEF's northbound APIs, some lack the necessary integrations with the real testbed essentially acting as a stub. Highlight the ones that do have this integration and control/reflect the actual behavior of the live testbed: QoS (verify with/ask Rafael)
-        \item Emphasize that a real testbed allows validation against actual UE behavior and live QoS profiles and traffic flows. This is achieved through the validation of real network metrics that NEFSim simply cannot replicate, meaning that use cases such as QoS policy enforcement, monitoring subscriptions, or traffic influence that depend on real UE interaction remain entirely unverified. (only mention the problems that will actually be solved - probably QoS)
-        \item Therefore it is specially relevant to integrate the analytics exposure API with real network metrics collected on the Testbed as specified in Section \ref{chap:proposal:observability}, thereby allowing the validation of these APIs and the use cases of network applications that are based on them
         \item Highlight the suite of \acs{NEF} analytics events (from \acs{NEF}'s analytics exposure \acs{API}) included in order to support the network analytics to be monitored, that were specified in Section \ref{chap:proposal:observability}
         \item However, interaction directly with the NEF Analytics Exposure API requires deep understanding of the standard (reference the given standards, reference multiple even) and telco expertise. Therefore, introduce CAMARA APIs, namely the application profiles and connectivity insights subscriptions APIs as a more user friendly way to validate the network performance against the requirements of a given network application (described via an application profile), abstracting away the underlying complexity from network application developers. 
     \end{enumerate}
