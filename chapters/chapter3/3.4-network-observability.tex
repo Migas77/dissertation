@@ -35,6 +35,7 @@ Passive monitoring derives network metrics by capturing and inspecting traffic a
 The main advantage of passive monitoring is in its non-intrusive nature. As it operates on traffic already present in the network, it does not consume additional bandwidth, limiting itself to observing the already existing traffic. However, it is contingent on the existence of active traffic and unlike active probing techniques, cannot directly measure the network conditions as experienced by the subscriber, meaning it is not suitable, for instance, to validate end-to-end performance throughout the entire lifetime of a network slice and its \acsp{UE}.
 
 \subsection{Active Probing}
+\label{chap:proposal:observability:activeprobing}
 
 Active probing complements passive monitoring by generating synthetic test traffic between designated points (e.g. between the prober process and an \acs{UE}) to measure \acs{QoS} parameters on demand, independently of current application traffic. By leveraging active probing, it is possible to directly measure metrics such as \acs{RTT} and \acs{RTT} jitter, which are particularly relevant for latency sensitive applications and cannot be reliably inferred from passive counters alone. Instead, active probing directly captures these metrics from the end-user's perspective, i.e. a prober, making it suitable to validate the enunciated performance of a network slice, immediately after it has been provisioned.
 
@@ -62,6 +63,5 @@ In addition to such reactive measures, the collected metrics can further serve a
         \item Detail passive monitoring and highlighting the capture of the network's traffic and its inspection to obtain network metrics, such as throughput, packet counts and error rats
         \item Introduce active probing as a partial solution to this problem, as automatic probing per-slice/per-ue needs to be triggered in an autonomous way upon provisioning a slice/UE. Give the example of RTT and RTT jitter as metrics obtained from this monitoring process.
         \item Include something about closed loop optimization and how having network observability and obtaining network metrics contribute to this
-        \item Add this somewhere (already well written). Not necessarily in this chapter: Network slicing provides the mechanism through which the \acs{5G} core partitions physical infrastructure into isolated logical networks, each configured to satisfy a specific set of \acs{QoS} targets. For network applications that depend on guaranteed service conditions, network slicing represents the baseline for sustaining the stringent network requirements required by such use cases.~\ref{sota:5gecosystem}
     \end{enumerate}
 }

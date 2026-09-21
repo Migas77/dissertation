@@ -1,13 +1,36 @@
 \section{\acs{5G} Resource Lifecycle Management}
-\label{chap:proposal:gcontroller}
+\label{chap:proposal:resource_lifecycle}
+
+The testbed must be designed to support network applications across diverse vertical sectors, each imposing distinct \acs{QoS} requirements. As introduced in Section~\ref{sota:slicing}, network slicing provides the mechanism for meeting these heterogeneous requirements by partitioning the physical infrastructure into isolated logical networks, called slices, each tailored to specific \acs{QoS} targets.
+
+Therefore, in order to achieve this objective and cater to the use cases of a broad range of verticals, the testbed should support network slicing, covering all phases of the \acs{NSI} lifecycle: preparation, commissioning, operation, and decommissioning. Managing and orchestrating these phases correctly, demands the coordinated operation of the management functions discussed in Section~\ref{sec:slice:lifecycle}: the \acs{CSMF}, the \acs{NSMF} and the \acs{NSSMF}.
+
+The proposed architecture presented in Figure~\ref{fig:proposal:architecture} identifies the components responsible for managing network slices in the testbed, incorporating the aforementioned management services. In this architecture, the \acs{CSMF} role is fulfilled by the \acs{OAM} system, which is responsible for exposing the communication services to customers, translating them into network slice requirements and delegating them to the \acs{NSMF}. Then, according to these requirements, the \acs{NSMF} and \acs{NSSMF} coordinate the instantiation and lifecycle management of \acsp{NSI} and their constituent \acsp{NSSI}, following the hierarchy described in Section \ref{sec:slice:lifecycle}. Additionally, the \acs{NSSMF} interacts with the \acs{NFVO} for the orchestration of virtualized network resources, comprising network functions across the \acs{RAN} and \acs{CN}, i.e. the \acs{5G} System.
+
+The architecture also establishes a clear separation between the management plane and the \acs{5G} \acs{SBA}. The management plane, composed by the \acs{OAM} system, the \acs{NSMF} and the \acs{NSSMF}, is responsible for the provisioning and lifecycle management of network slices. In turn, the \acs{SBA} operates independently from the management plane, encompassing a series of modular \acsp{NF} that support data connectivity and the delivery of communication services. 
+
+However, as highlighted in Section \ref{sota:slicing} network slices span over the various domains of the \acs{5G} System, i.e. the \acs{RAN} and the \acs{CN}. Therefore, the \acs{SBA} also contributes to the support of network slices, incorporating mechanisms to perform operations scoped to a specific slice in its various \acsp{NF}. In this context, the \acs{NSSF} is of particular relevance for selecting the \acs{NSI} serving a specific \acs{UE} and determining the allowed \acs{NSSAI}. 
+
+Each \acs{NF} instance operates within the context of a specific network slice, identified by the \acs{S-NSSAI}, and is selected accordingly during service procedures. This design allows the \acs{SBA} to execute slice-specific procedures in direct relation to the slices provisioned by the management plane, including the routing of \acs{UE} registrations to the correct \acs{NSI} through the \acs{AMF}, the establishment of \acs{PDU} sessions over the designated \acs{DNN} through the \acs{SMF}, and the exposure of network capabilities scoped to a specific slice through the \acs{NEF}.
+
+\plan{Highlight the SBA role and its separation regaridng the management system. Hihglight this and then explain how it can complete operations within a network slice}
+
+
 
 \plan{
-    \begin{enumerate}
-        \item Highlight the need for the provisioned 5G Resources to be managed and provisioned under a single platform, available to third parties without revealing privileged insights of the testbed. 
-        \item Associate each step of the workflow of the provisioning workflow with the corresponding NSI lifecycle phases defined in Section \ref{sec:slice:lifecycle}
-        \item Detail the components required to associate a network slice with a UE: beyond the NSI itself, this involves configuring the S-NSSAI on the UE, registering it with the correct AMF slice selection policy, and establishing the PDU session over the desired DNN.
-        \item Highlight the need for a fully automated process that not only provisions the 5G Resources but also is deeply integrated with monitoring mechanisms that can safeguard the testbed performance, and, therefore, attribute any observed network application behaviour (whether functional or anomalous) directly to the application code of said network application.
-        \item However, in order to be able to properly develop and test network applications, developers need interfaces, providing controlled access to network capabilities that can be used to tailor the 5G system to the needs of their applications (it's necessary to also mention what interfaces enable this, for instance QoS Management). Therefore, it is crucial for the testbed to expose relevant network functions and these interfaces in a secure, standardized, and developer-friendly manner
-        \item The NEF and specific details of such interfaces will be discussed further in the following section
-    \end{enumerate}
+\begin{enumerate}
+    \item Establish network slicing as the baseline for sustaining the stringent network requirements required by a Network Application
+    \item Reference the 5G resource lifecycle and management functions at section 2.2.2 highlighting each purpose
+    \item Detail the components required to manage network slices.
+    \item Establish how the OAM component present in the architecture absorbs the CSMF role by translating third-party client service requirements into concrete network slice requirements (converting communication services and client requirements to the corresponding slice requirements), connecting the CSMF/NSMF/NSSMF management hierarchy discussed in Section 2.2.2
+    \item Mention SON concepts for management of network slicing (namely the NSI Automated Configuration and Reconfiguration part). THIS MUST BE MENTIONED AS IT IS DISCUSSED AT A LATER SECTION Cite \cite{3GPP-28.801}
+    \item Highlight the need for the provisioned 5G Resources to be managed and provisioned under a single platform, available to third parties without revealing privileged insights of the testbed. 
+    \item Highlight the division between the SBA and the management plane constituted by the CSMF, NSMF, NSSMF
+    \item Clarify the architectural separation between the SBA — where NEF and CAMARA APIs operate to expose network capabilities at runtime — and the management plane — where the the OAM, NSMF and the NSSMF operate to provision and manage resources.
+    \item Detail the specific 5G steps that the management layer of the architecture must perform to associate a provisioned NSI with a UE: configuring the S-NSSAI on the UE, registering the correct AMF slice selection policy, and establishing the PDU session over the target DNN
+    \item Highlight the need for a fully automated process that not only provisions the 5G Resources but also is deeply integrated with monitoring mechanisms that can safeguard the testbed performance, and, therefore, attribute any observed network application behaviour (whether functional or anomalous) directly to the application code of said network application.
+    \item However, in order to be able to properly develop and test network applications, developers need interfaces, providing controlled access to network capabilities that can be used to tailor the 5G system to the needs of their applications (it's necessary to also mention what interfaces enable this, for instance QoS Management). Therefore, it is crucial for the testbed to expose relevant network functions and these interfaces in a secure, standardized, and developer-friendly manner
+    \item The NEF and specific details of such interfaces will be discussed further in the following section
+\end{enumerate}
 }
+

@@ -1,0 +1,9 @@
+The \acs{PoC}'s \acs{API} usage is consistent with patterns established in the literature. Dynamic \acs{QoS} adaptation triggered by geographical changes, using CAMARA Device Location and \acs{QoD} \acsp{API}, has been demonstrated in digital twin and \acs{CAM} scenarios~\cite{DynamicQoSAdaptationviaExposedServiceAPIs, OnDemandNetworkQoSAdaptation}. The FIDEGAD scenario extends this pattern to \acs{PPDR}: instead of reacting to cell-level location events from a simulated vehicle, the application responds to drone movement across operational areas and to degraded network conditions detected through continuous metric monitoring.
+
+\subsection{Application Interaction Flow based on \acs{NEF}}
+
+Through the combined use of these interfaces, the \acs{PoC} exercises the full integration stack of the proposed testbed in a single end-to-end scenario. The application onboards via \acs{CAPIF}, which provides authenticated access to all downstream \acsp{API}. It then declares its network requirements through the CAMARA Application Profiles \acs{API} and subscribes to Connectivity Insights notifications to be informed when those requirements are not being met. When a degradation event is received, or when a location change reported via the \acs{NEF} \textit{MonitoringEvent} \acs{API} indicates a transition to a higher-priority operational area, the application adjusts its active \acs{QoS} profile through either the CAMARA \acs{QoD} \acs{API} or directly via the \acs{NEF} \textit{AsSessionWithQoS} \acs{API}. In parallel, the \acs{NEF} \textit{AnalyticsExposure} \acs{API} provides the continuous stream of live metrics against which the declared requirements are evaluated.
+
+
+\subsection{Application Interaction Flow based on CAMARA}
+

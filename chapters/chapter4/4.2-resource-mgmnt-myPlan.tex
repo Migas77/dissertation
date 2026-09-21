@@ -1,0 +1,30 @@
+\section{\acs{5G} Resource Lifecycle Management}
+\label{chap:impl:resource_lifecycle}
+
+\plan{
+    \begin{enumerate}
+        \item Reference Section 3.2 regarding the use of network slicing to cater to various vertical use cases and network applications.
+        \item Remember the management functions highlighted in Section 3.2 to cover all the phases of NSI lifecycle
+        \item Introduce OSL OSS, responsible for the OAM functionality (fulfilling the CSMF role established in Section~\ref{chap:proposal:resource_lifecycle}), grounded in the TMF ODA framework, and exposing network resources as services through TMF Open APIs to third-party clients.
+        \item Highlight how communication services are exposed to customers by OSL through customer facing services, allowing them to provision network resources without the need for infrastructure or any insights of how to manage such infrastructure (i.e. the testbed). How this customer facing services map internally to Resource Facing Services for the slice and the UE. 
+        \item Mention this RFS need to be concretized, actually provisioned and orchestrated
+        \item Introduce OSM as the NFVO, and describe how OSL delegates NFV-based network resource orchestration to OSM via the SOL005 interface — mapping to the NSMF/NSSMF/NFVO interaction chain described in the proposal
+        \item Highlight the role of the CRIDGE component as well
+        \item Establish proprietary Slice Manager API as the mechanism to interact with the 5G system (core and RAN) to provision network slices and UEs in the 5GAIner testbed. Highlight it abstracts the interaction with NFV components behind an API, allowing the creation, update and deletion of the previous resources (slices and UEs)
+        \item Introduce OSL Generic Controllers as the mechanism to automate the lifecycle management of 5G Resources, mapping creation, update and deletion of the OSL services unto calls to the Slice Manager API.
+        \item Highlight the need for OSL service changes to be actively propagated to the network, reflecting the current state of 5G resources, active slices and connected UEs, and for the outcome, whether success or failure, to be reported back to the user. When the customer changes the criteria for the slice then it must be reflected onto the network. When the slice and UE are terminated so does that need to happen in the network. If any of the operations doesn't go as expected the showcased OSL service must not be offsync compared to the state of the network.
+    \end{enumerate}
+}
+
+\subsection{Slicing Generic Controller}
+
+\plan{\begin{enumerate}
+    \item Introduce the implemented generic controller to manage the lifecycle of network slices and UEs (and associate a network slice to an UE). Mention generic controller permits the registration of Resource Specifications, and definition of creation, update and deletion callbacks to manage the corresponding resoures. Highlight that is the responsibility of the operator (in this case us, the owners of the testbed) to create a resource and resource specification for each of the 5G resources. The generic controller runs as a separate container that will manage each of this resources. In order to expose this resource to third parties a Resource Facing Service (and specification) and Customer Facing Service (and specification) must be created and coordinated (exchange of information between LCM Rules)
+    \item Detail the network slice management component of the Generic Controller. Start by defining the Resource (and its fields). Then, specify how the generic controller handles the creation, update, and deletion of network slices translating OSL service requirements (fields) into the corresponding Slice Manager API calls, realizing the SON Automated Configuration and Reconfiguration procedures discussed in Section~\ref{chap:proposal:resource_lifecycle}
+    \item Detail the UE management component of the Generic Controller. Start by defining the Resource (and its fields). Then, specify how a UE can be created and associated to a given slice. Highlight how in an optimal setting we would be able to change the slice an UE belongs to (but it was not possible due to the absence of such an endpoint in the Slice Manager API). Mention the delete procedure and how Slice Manager API abstracts the disassociation of the UE from the respective slice under one API call.
+    \item Highlight the Generic Controller is only responsible for the management of the Slice/UE Resource and the corresponding Resource Facing Service. Therefore it is necessary the use of LCM RULES to propagate the requirements/fields of the CFS to the RFS and vice-versa.
+    \item Reference section 3.4, reenforcing the need for a fully automated monitoring process. Mention the implemented monitoring process will be further explained at Section \ref{chap:impl:observability}. 
+    \item Describe the integration of the monitoring stack (Prometheus exporters and Grafana) with the lifecycle management, detailing how per-UE telemetry collection is activated within the Generic Controllers as part of the provisioning lifecycle, supporting the attribution of observed network application behaviour to the application logic rather than to infrastructure conditions.
+    \item Mention the automatic provisioning of a grafana dashboard for all slice UEs with per-IP and per-MAC source throughput metrics, passively collected by the deployed exporters across all network UEs (and therefore that slice-UEs as well).
+    \item Mention the dashboard also contains active probing metrics for the slice UEs, which requires publishing the UEs IP addresses, to the prober container, also described in Section \ref{chap:impl:observability}. Reenforce that this will only happen if the client, definining its requirements through the Slice Customer Facing Service, actually sets the active\_probing field to true. 
+\end{enumerate}}
