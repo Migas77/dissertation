@@ -87,9 +87,9 @@ More specifically, defining the interface requirements entails specifying the ac
 \toprule
 \textbf{Interface} & \textbf{Req.} & \textbf{Role in the \acs{PoC}} \\
 \midrule
-\parbox[t]{3.9cm}{\acs{NEF} \textit{AsSessionWithQoS}} \acs{API} & FR5, C1, PR1, PR5 & Enforcing \acs{QoS} profile, guaranteeting minimum uplink bitrate for drone/\acs{UE} flow \\
-\parbox[t]{3.9cm}{\acs{NEF} \textit{MonitoringEvent}} \acs{API} & FR4, PR4 & Subscribing \acs{UE} location change events (type LOCATION\_REPORTING), notifying the application to trigger a \acs{QoS} update upon drone area transitions \\
-\parbox[t]{3.9cm}{\acs{NEF} \textit{AnalyticsExposure}} \acs{API} & PR1 & Monitoring of live throughput, volume and \acs{RTT} for continuous performance validation \\
+\parbox[t]{3.9cm}{\acs{NEF} \textit{AsSessionWithQoS}} & FR5, C1, PR1, PR5 & Enforcing \acs{QoS} profile, guaranteeting minimum uplink bitrate for drone/\acs{UE} flow \\
+\parbox[t]{3.9cm}{\acs{NEF} \textit{MonitoringEvent}} & FR4, PR4 & Subscribing \acs{UE} location change events (type LOCATION\_REPORTING), notifying the application to trigger a \acs{QoS} update upon drone area transitions \\
+\parbox[t]{3.9cm}{\acs{NEF} \textit{AnalyticsExposure}} & PR1 & Monitoring of live throughput, volume and \acs{RTT} for continuous performance validation \\
 \mbox{CAMARA \acs{QoS} Profiles} \acs{API} & C1 & Defining the set of available \acs{QoS} profiles and associated parameters, allowing CAMARA \acs{QoD} \acs{API} to select and enforce the requested profile \\
 \mbox{CAMARA \acs{QoD} \acs{API}} & FR5, PR1, PR5 & High-level \acs{API} for enforcing the \acs{QoS} profile, guaranteeting minimum uplink bitrate for drone/\acs{UE} flow and abstracting the underlying \acs{NEF} \textit{AsSessionWithQoS} \acs{API} \\
 \mbox{CAMARA Geofencing} \mbox{Subscriptions \acs{API}} & FR4, FR5, PR4 & High-level \acs{API} for subscribing to geofencing events that trigger a \acs{QoS} update as the drone entries a defined geographical area, abstracting \acs{NEF} \textit{MonitoringEvent} \acs{API} (type LOCATION\_REPORTING) \\
