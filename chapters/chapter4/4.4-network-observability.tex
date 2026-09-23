@@ -19,22 +19,29 @@ Since the metrics are gathered from traffic captured directly at each point of t
 
 Complementing this passive monitoring approach, the testbed also supports active monitoring, allowing the generation of synthetic traffic towards provisioned \acs{UE} to assess their connectivity. As identified in Section~\ref{chap:proposal:observability:activeprobing}, this requires a prober component that periodically sends requests towards monitored \acs{UE} and computes performance metrics based on the received responses. These metrics are exposed to and scraped by the same Prometheus instance used for passive monitoring. Although such a component could be developed from scratch, several open source Prometheus exporters already address this problem. Among them, the \texttt{network\_exporter}\footnote{https://github.com/syepes/network\_exporter} and the \texttt{blackbox\_exporter}\footnote{https://github.com/prometheus/blackbox\_exporter}, the latter maintained by the Prometheus project, were identified as the most promising alternatives.
 
-Both solutions fulfill the intended goal, allowing the probing configuration to be changed and updated at runtime, which is required for a testbed where the set of probed targets follows the lifecycle of the provisioned \acs{UE}. However, they operate on fundamentally different principles. The \texttt{blackbox\_exporter} follows an on-demand model issuing a single request each time it is scraped by the Prometheus. In contrast, the \texttt{network\_exporter} is completely decoupled from Prometheus. , probing each target with a burst of echo requests at an interval defined in the prober configuration, with each scrape simply returning the most recent results
+Both solutions fulfill the intended goal. In addition, they allow the probing configuration to be updated at runtime, which is required for a testbed where the probed targets follow the lifecycle of the provisioned \acs{UE}. However, they operate on fundamentally different principles. The \texttt{blackbox\_exporter} follows an on-demand model issuing a single request each time it is scraped by Prometheus. In contrast, the \texttt{network\_exporter} is completely decoupled from Prometheus and its scraping cycle, periodically sending a set number of requests to each target at a defined interval based on its own configuration, serving the aggregated results whenever a scrape occurs. This also results in a richer set of metrics\footnote{https://github.com/syepes/network\_exporter\#exported-metrics}, as each target is characterized by statistical aggregates computed over multiple requests, such as the minimum, maximum, mean, and standard deviation (jitter) of the \acs{RTT}, as well as the packet loss percentage, instead of the single success state and duration present on the alternative.
 
-This is achieved through a dedicated prober, based on the open source \texttt{network\_exporter}\footnote{https://github.com/syepes/network\_exporter} that sends \acs{ICMP} echo requests and exposes the computed metrics to the same Prometheus instance. For each configured target, the prober probes and collects 
+For these reasons, the \texttt{network\_exporter} was selected as the probing tool for this testbed. For each target, it sends periodic \acs{ICMP} echo requests to the \acs{IP} address allocated to the \acs{UE}, effectively measuring the \acs{RTT} across the \acs{5G} System. Each probed target is labelled with the identifier of the slice it belongs to, allowing active monitoring metrics to be aggregated per slice. In addition, this prober can also be employed to conduct throughput assessments. Since probing introduces additional load on the network, it is only activated when explicitly requested by the experimenter, being tied to the UE lifecycle to ensure probes are automatically started only after a UE is associated to a slice. This requires integration at the OSS and orchestration level, which is presented later in the section.
 
-In addition, this prober can also be employed to conduct throughput assessments. Since probing introduces additional load on the network, it is only activated when explicitly requested by the experimenter, being tied to the UE lifecycle to ensure probes are automatically started only after a UE is associated to a slice. This requires integration at the OSS and orchestration level, which is presented later in the section.
-
-\subsection{Metrics Exposure}
+\subsection{Monitoring Exposure}
 \label{chap:impl:observability:exposure}
 
-The measurements collected with both methods are exposed through two mechanisms. Grafana dashboards graphically present network slice and UE metrics, and are automatically provisioned and updated by the OSS as network slice and UE resources change. In parallel, programmatic access through the NEF AnalyticsExposure and CAMARA Connectivity Insights Subscriptions APIs outlined earlier is also provided. To achieve this, the NEF queries the Prometheus HTTP API to derive near-real-time and historic analytics from the stored time series. Similarly, the offering of active monitoring metrics is also achieved through the same workflow.
+The measurements collected with both methods are exposed through two mechanisms. Grafana dashboards graphically present network slice and \acs{UE} metrics. Rather than being manually configured by the experimenter, they are automatically provisioned and deprovisioned by the OSS when network slices are created or deleted, and updated when \acs{UE} resources are associated or disassociated from a slice. This is achieved through a Helm chart parameterized with the slice identifier, as described in Section~\ref{chap:impl:resource_lifecycle}, comprising the following three components: (i) the Grafana instance, pre-configured with the shared Prometheus data source, (ii) a job that creates a new Grafana account dedicated to automated processes, and (iii) a python script responsible for periodically polling the Slice Manager for the current set of \acsp{UE} associated with the slice and updating the dashboard accordingly.
 
-\plan{
-    \begin{enumerate}
-        \item (To be continued ...)
-        \item Establish
-        \item Highlight
-        \item Introduce
-    \end{enumerate}
-}
+Two dashboards are provisioned per slice. The slice throughput dashboard, shown in Figure~\ref{fig:impl:observability:dashboard:throughput}, presents the aggregated uplink, downlink and total throughput of the slice over time, together with the number of active \acsp{UE} and the throughput of each individual \acs{UE}, broken down by source and destination address. This also allows the experimenter to check the actual \acs{UE}-to-\acs{UE} communication flows and validate it against the expected behavior of the application. The second dashboard, shown in Figure~\ref{fig:impl:observability:dashboard:prober}, focuses on active probing metrics: \acs{RTT}, \acs{RTT} jitter and packet loss measured for each probed \acs{UE}, as well as the reachability status of each target.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/placeholder.png}
+    \caption{Grafana slice throughput dashboard}
+    \label{fig:impl:observability:dashboard:throughput}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/placeholder.png}
+    \caption{Grafana active probing dashboard}
+    \label{fig:impl:observability:dashboard:prober}
+\end{figure}
+
+In parallel, programmatic access through the NEF AnalyticsExposure and CAMARA Connectivity Insights Subscriptions APIs outlined earlier is also provided. To achieve this, the NEF queries the Prometheus HTTP API to derive near-real-time and historic analytics from the stored time series. For the probe measurements, e.g. \acs{RTT}, jitter \acs{RTT}, no equivalent programmatic exposure mechanism is currently available as, to the best of the authors' knowledge, neither the 5GC exposure interfaces nor the CAMARA initiative define a standardized API for exposing metrics obtained exclusively from active probing procedures.
