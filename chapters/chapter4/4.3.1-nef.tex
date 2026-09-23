@@ -1,5 +1,5 @@
-\section{\acs{NEF}}
-\label{chap:impl:nef}
+\subsection{\acs{NEF}}
+\label{chap:impl:exposure:nef}
 
 As it has been repeatedly noted throughout this document, the \acs{NEF} is the primary network function of the \acs{5GC} \acs{SBA} responsible for the exposure of network capabilities to third parties. Following the analysis of the available \acs{NEF} implementations conducted in Section~\ref{exposure:NEFimplementations}, the NEFSim~\cite{NEFsim}, as extended by \acs{ITAv}~\cite{NEFemulatorAtnog}, was selected as the most suitable choice for this role within the testbed. This selection was motivated by a variety of factors:
 
@@ -13,8 +13,8 @@ Hence, in its original purpose, the NEFSim establishes a simulated environment w
 
 Therefore, at \acs{ITAv}, the NEFSim implementation is directly integrated with the 5GAIner infrastructure, extending its role beyond a purely simulated environment and allowing application developers to actually incorporate network behavior into their business logic. This is the case for the \textit{AsSessionWithQoS} \acs{API}, but is not the case for all northbound \acsp{API} specified in Appendix~\ref{appendix:NEF}. Thus, in the context of this dissertation, the \textit{AnalyticsExposure} \acs{API} was integrated with the NEFSim implementation, to expose real network metrics to external consumers. By combining these two \acsp{API}, network application developers are equipped with the instruments to both influence and observe network behavior according to their application requirements: configuring and enforcing specific \acs{QoS} requirements through the \textit{AsSessionWithQoS} \acs{API}, while monitoring and reacting to live network conditions, with the \textit{AnalyticsExposure} \acs{API}.
 
-\subsection{AnalyticsExposure \acs{API}}
-\label{chap:impl:nef:AnalyticsExposure}
+\subsubsection{AnalyticsExposure \acs{API}}
+\label{chap:impl:exposure:nef:AnalyticsExposure}
 
 This section delves into the implementation details of the \textit{AnalyticsExposure} \acs{API}, as defined in \acs{3GPP} TS~29.522~\cite{ETSI_TS_129_522_V18_11_0}. As previously mentioned, the \textit{AnalyticsExposure} \acs{API} allows external consumers to subscribe to network analytics and receive notifications periodically or when specific network conditions are met. The implementation focuses on exposing real network metrics by retrieving them from the configured Prometheus, defined at Section~\ref{chap:impl:observability}, and exposing them through the \acs{API}, according to the specification~\cite{ETSI_TS_129_522_V18_11_0}. Code Block~\ref{code:impl:nef:analyticsexposure:structure} showcases the structure of the implemented \acs{API} in NEFSim's codebase~\cite{NEFemulatorAtnog}, with highlighted fields indicating the changes introduced in the context of this feature.
 
