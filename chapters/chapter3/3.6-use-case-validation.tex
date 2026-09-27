@@ -14,6 +14,8 @@ The \acs{PoC} application is designed within the \acs{FIDEGAD} scenario~\cite{FI
 \subsection{Application Requirements}
 \label{chap:proposal:use-case-validation:requirements}
 
+The envisioned network application consists of three main elements: (i) fixed roadside cameras, acting as \acsp{UE}, that capture live video and stream it over the \acs{5G} network; (ii) a server, deployed at the \acs{MEC} or the cloud, that processes the received streams through an \acs{AI} vehicle collision detection model; and (iii) notification mechanisms that, once a collision is detected, alert pedestrians and vehicles located in the surrounding area.
+
 With the context and purpose of the network application being established, the next step is to derive the requirements for the \acs{PoC} application. These will be organized into the following categories: functional, performance and non-functional requirements. Functional requirements describe the system and its functionality, i.e. the tasks it is capable of performing. Performance requirements define the extent, and under what conditions, such functions must be executed, expressed as quantitative and individually verifiable metrics. Lastly, non-functional requirements specify requirements under which the system is required to operate, as well as the system's properties. Within this category, the focus will be placed on quality requirements, which capture system criteria such as reliability, maintainability, security and portability~\cite{ISORequirementsEngineering}.
 
 \subsubsection{Functional Requirements}
