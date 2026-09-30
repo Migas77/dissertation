@@ -1,1 +1,1 @@
-3.5.3 Service Validation - refactor more in line with the motivation (single line of though / tell the history). Check the replaced version for an appropriate example
+3.5.3 Service Validation - refactor more in line with the motivation (single line of though / tell the history). Check the replaced version for an actul appropriate example
