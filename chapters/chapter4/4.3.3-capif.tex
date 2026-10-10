@@ -1,11 +1,47 @@
 \subsection{Secure \acs{API} Exposure via \acs{CAPIF}}
 \label{chap:impl:exposure:capif}
 
-\plan{
-    \begin{enumerate}
-        \item (To be continued ...)
-        \item Establish
-        \item Highlight
-        \item Introduce
-    \end{enumerate}
-}
+Section~\ref{chap:proposal:exposure:capif} established the need for a single governance mechanism responsible for the secure publication, discovery and consumption of the testbed’s network exposure interfaces, identifying \acs{CAPIF} as the standardized framework to fulfill this role. Such a framework is essential to ensure uniform access to the network's capabilities, covering both \acs{NEF} and CAMARA \acsp{API} under a common set of procedures. To implement the standard and integrate it with the existing exposure components, the testbed adopts Open\acs{CAPIF}\footnote{https://ocf.etsi.org}~\mbox{(Release~4.0.0)}, an open source \acs{CAPIF} implementation developed by \acs{ETSI}.
+
+Fully aligned with \mbox{3GPP~TS~29.222~Release~19}~\cite{}, Open\acs{CAPIF}\footnote{https://ocf.etsi.org/documentation/latest/architecture/architecture/} implements the \acs{CCF} \acsp{API} as a series of microservices, one per \acs{API}: Discover, Publish, Events, Invoker Management, Security, Logging, Auditing, Access Control Policy, Provider Management, Routing Info, and Open Discover, all exposed behind an Nginx reverse proxy with \acs{mTLS}. It also provides a Register service that handles user management, registering, authenticating, and managing the users that will interact with \acs{CAPIF} as Invokers or Providers. Additionally, a HashiCorp Vault\footnote{https://www.hashicorp.com/en/products/vault} instance acts as the certificate authority (CA), managing and signing all \acs{CAPIF} certificates.
+
+Among the available open source \acs{CAPIF} implementations, Open\acs{CAPIF} was selected for being standard-compliant and actively maintained by \acs{ETSI}, with regular releases tracking the evolution of the specification. It further provides a dedicated codebase for integration with the exposure ecosystem, the Open\acs{CAPIF} \acs{SDK}\footnote{https://ocf.etsi.org/documentation/latest/sdk/sdk\_introduction/}, which streamlines onboarding and interaction with the \acs{CCF} for both providers, publishing their service \acsp{API}, and invokers, e.g. the network applications consuming them. Finally, its architecture aligns with the cloud-native paradigm targeted by the testbed, as all microservices are containerized and packaged as Helm charts, enabling their seamless deployment and lifecycle management alongside the remaining components of the testbed.
+
+ADD INTRODUCTION FOR PROCEDURES
+POSSIBLY MENTION KUBERNETES SETUP (MAYBE ALL IN SERVICE PROVISIONING)
+
+\subsubsection{\acs{CAPIF} Procedures}
+\label{chap:impl:exposure:capif:procedures}
+
+\subsubsection{Open\acs{CAPIF} Integration}
+\label{chap:impl:exposure:capif:opencapif}
+
+Integrating Open\acs{CAPIF} into the testbed required realizing these procedures on both sides of the exposure chain, for both providers (i.e. \acs{NEF} and CAMARA) and the invokers (i.e. CAMARA and the network application). For the \acs{NEF}, this was expected to be more straightforward, as its built-in \acs{CAPIF} support was a key reason for selecting the \acs{NEF}Sim implementation in the first place. More concretely, the original upstream version of the emulator\footnote{https://github.com/EVOLVED-5G/NEF\_emulator} relied on the EVOLVED-5G \acs{SDK}\footnote{https://github.com/EVOLVED-5G/SDK-CLI/blob/master/evolved5g/sdk.py}, which provides dedicated classes for provider onboarding and \acs{API} publication, invoker onboarding, invocation logging and auditing, service discovery, and OAuth-based authorization. From these, the emulator utilized the provider classes to onboard and publish the MonitoringEvent and AsSessionWithQoS \acsp{API}, logging each invocation to \acs{CAPIF}. Incoming requests were authorized by verifying the signature of the \acs{CAPIF}-issued access tokens (i.e. \acsp{JWT}) with the \acs{CAPIF} server's public key.
+
+This implementation was validated with older Open\acs{CAPIF} versions. However, a closer assessment of the implementation revealed that the \acs{SDK}'s integration had not kept pace with subsequent releases of the framework, resulting in erroneous and inconsistent behavior, for the most recent Open\acs{CAPIF} releases. Thus, this dissertation uses the Open\acs{CAPIF}~\acs{SDK}\footnote{https://pypi.org/project/opencapif-sdk/}, a Python package maintained alongside the \acs{CCF} within the \acs{ETSI}~Open\acs{CAPIF} project and kept compatible with its public releases, to implement provider and invoker procedures in the \acs{NEF}Sim, CAMARA and network application components. This also simplifies the integration process as the testbed grows, since new exposure interfaces, whether \acs{NEF}, CAMARA or even proprietary \acsp{API}, can reuse the same \acs{SDK} functionality instead of reimplementing the \acs{CAPIF} procedures. The same applies to any new network applications that third parties may wish to develop, provided they are built within the Python ecosystem.
+
+Since both the \acs{NEF}Sim and CAMARA interfaces are implemented with Fast\acs{API}\footnote{https://fastapi.tiangolo.com}, a Python web framework for building \acsp{API}, the Open\acs{CAPIF} \acs{SDK} is integrated through two mechanisms provided by the framework, each covering a distinct stage of the procedures described earlier. This approach also ensures the implementation of the \acs{CAPIF} flows remains independent of the testbed deployment environment, supporting development and operation outside the testbed (e.g. in non-Kubernetes environments, using Docker Compose, or in local deployments with a separate \acs{CAPIF} instance), in line with the goal of the corresponding open source repositories. 
+
+Fast\acs{API}'s lifespan events provide a mechanism for defining custom code to be executed during application startup and shutdown, allowing \acs{CAPIF} procedures to be tied to the application lifecycle. At startup, the \acs{NEF}Sim onboards as an \acs{API} provider and publishes its \acsp{API} to the \acs{CCF}. This operation is idempotent, ensuring the \acs{NEF} and its \acsp{API} are registered exactly once, across restarts or multiple instances (e.g. Kubernetes replicas). Symmetrically, at shutdown, the offboarding procedure is executed, automatically unpublishing the corresponding \acsp{API}. However, to prevent the application from deregistering the provider and unpublishing its \acsp{API}, in the case of a multi-replica setup, the offboarding procedure at shutdown is disabled by default. The corresponding implementation is illustrated in Figure~\ref{fig:impl:exposure:capif:nef}.
+
+The CAMARA component extends this behavior, additionally invoking the Open\acs{CAPIF} \acs{SDK} to perform the \acs{API} invoker procedures. This includes onboarding as an invoker and discovering all available \acsp{API} associated with its invoker id at startup. Invoker offboarding at shutdown follows the same rule, being disabled by default. Figure~\ref{fig:impl:exposure:capif:camara} showcases the implementation for the lifespan events. The implementation differs in structure from the previous one due to different Fast\acs{API} versions and support, i.e. \acs{NEF}Sim's version doesn't support lifespan parameter. The implementations rely on separate \texttt{capif\_invoker} and \texttt{capif\_provider} singletons, each implemented as a custom class built around the Open\acs{CAPIF} \acs{SDK} objects. 
+
+with the full implementation for both being avaialble
+
+network application, i.e. the end invoker also follows this same approach
+
+include figures are partial implementation
+
+backup of the code for getting a given API from CAPIF
+
+- lifespan events (startup/shutdown) using opencapif sdk in both the providers / invokers
+
+- middleware for decoding jwt token and calling the check authentication for validating the token and checking supported features (actually is not a middleware, but a FastAPI dependency)
+
+- everything over https
+
+Slightly variations are present due to the 
+
+
+Another thing important to point out is that the creation of the respective CAPIF users represneting the NEF, CAPIF and the third party network applications were included as an additional step at the deployment scripts of the OpenCAPIF instance
+
