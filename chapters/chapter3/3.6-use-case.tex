@@ -123,17 +123,6 @@ On one hand, the \acs{NEF} interfaces are defined by \acs{3GPP} allowing precise
 On the other hand, CAMARA \acsp{API}, aligned with the objectives defined by the CAMARA project~\cite{CAMARAProject}, provide a higher-level user-friendly abstraction, destined to developers with no telco expertise, allowing them to focus on the behavior of their own network applications rather than the complexities of the underlying network, while still taking advantage of its capabilities. Nevertheless, the CAMARA approach still relies on the same underlying \acs{NEF} interfaces to actually deliver network services, according to the information flows described at Section \ref{chap:proposal:exposure:camara}. In the following section, the end-to-end interaction flow of the proposed application is defined, detailing the sequence of operations performed across the various system components and highlighting the difference between the \acs{NEF} and CAMARA \acsp{API} approaches.
 
 \plan{
-    Include an interaction sequence diagram illustrating the end-to-end flow of the PoC (prioritizing CAMARA):
-    \begin{enumerate}
-        \item Onboarding via CAPIF
-        \item The creation of an application profile declaring application requirements
-        \item The creation of a connectivity insights subscription to be notified when the application requirements are not being met
-        \item The change of QoS profile in response to being unable to meet the application requirements or in response to a location change (CAMARA QoD API)
-    \end{enumerate}
-    Include a sequence diagram prioritizing the NEF path. Showcase the added procedural complexity of the NEF implementation flow compared to the CAMARA APIs, in the prespective of the application developer/end-user.
-}
-
-\plan{
     ORIGINAL
     \begin{enumerate}
         \item Introduce the PPDR domain as the vertical context for the PoC, drawing from the use cases discussed in Section \ref{sota:networkapplications:usecases} (IOPS, FIDEGAD). Highlight the particular relevance of PPDR scenarios for exercising network exposure interfaces: they require reliable, low-latency communication under dynamic and potentially degraded network conditions, making QoS enforcement and continuous network monitoring essential, not optional, capabilities.
