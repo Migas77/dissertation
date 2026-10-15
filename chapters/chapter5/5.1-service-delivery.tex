@@ -1,10 +1,14 @@
 \section{Service Delivery Performance}
 \label{chap:results:delivery}
 
-Experiment X
+Service delivery constitutes the initial stage of the network application validation lifecycle, translating the ordered vertical's service specifications into a fully operational environment configured and ready for experimentation.
+
+This experiment measures and compares the time required to provision all testbed services through the OpenSlice \acs{OSS}, submitting a single service order via \acs{TMF} Open \acsp{API}. The objective is to establish the baseline duration for configuring and deploying the testbed environment before vertical experiments can begin, and to identify the contribution of each service to the overall provisioning time. The experiment also quantifies the cost of the abstraction provided by the \acs{OSS} in the orchestration process, allowing verticals to obtain a complete self provisioned environment without directly interacting with the underlying network infrastructure. Finally, by ordering the same service specification across multiple executions, the experiment evaluates the consistency of the delivery process, assessing its ability to support reproducible experiments on the testbed.
 
 \subsection{Experimental Setup}
 \label{chap:results:delivery:setup}
+
+In this experiment, OpenSlice and the Kubernetes cluster hosting the Generic Controllers ran on an Ubuntu 22.04 VM with 8 vCPUs, 24 GB RAM, and 120 GB disk. All other services ran on a separate Ubuntu 22.04 VM with 16 vCPUs, 32 GB RAM, and 256 GB disk.
 
 \subsection{Procedure}
 \label{chap:results:delivery:procedure}
