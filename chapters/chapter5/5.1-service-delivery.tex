@@ -8,10 +8,39 @@ This experiment measures and compares the time required to provision all testbed
 \subsection{Experimental Setup}
 \label{chap:results:delivery:setup}
 
-In this experiment, OpenSlice and the Kubernetes cluster hosting the Generic Controllers ran on an Ubuntu 22.04 VM with 8 vCPUs, 24 GB RAM, and 120 GB disk. All other services ran on a separate Ubuntu 22.04 VM with 16 vCPUs, 32 GB RAM, and 256 GB disk.
+\later{5GAINER and the slice manager and the ues}
+
+In this experiment, the Kubernetes cluster (K3s\footnote{https://k3s.io}), responsible for orchestrating all containerized workloads ordered by third parties via the \acs{OSS}, was hosted on Ubuntu 22.04 \acs{VM} with 8 vCPUs, 24 GB \acs{RAM}, and 120 GB disk. The same \acs{VM} also hosted OpenSlice, deployed with Docker Compose, and the slicing Generic Controller, deployed as a standalone Docker container. Because these resources are finite and some components, such as the \acs{5G} Core, are shared and stateful across experiments, any repetitions will be executed one after another, rather than in parallel, ensuring the reported times are not affected by contention between concurrent experiments.
+
+To conduct the experiment, a single \acs{TMF} service was previously created in the OpenSlice catalog, bundling the application with the \acs{RFS} services required to provide the testbed capabilities detailed in Section~\ref{chap:impl:delivery}. Ordering the service initiates the full service pipeline, orchestrated sequentially through \acs{LCM} rules, as depicted in Figure~\ref{fig:itavtestbed:service:provisioning}. Moreover, to ensure that every repetition follows an identical procedure, a Bash script\footnote{\later{add github link to the benchmark script}} was developed to automate the experiment (using \acs{TMF} \acsp{API}) and collect the information required to measure service provisioning times. The script ran directly on the same \acs{VM} used for the experiment. The experimental setup is illustrated in Figure~\ref{fig:results:delivery:experimentalsetup}.
 
 \subsection{Procedure}
 \label{chap:results:delivery:procedure}
 
+\later{specifically saying how theyh are ordered sequentially, the services}
+
+To obtain statistically meaningful results, each experiment was repeated sequentially 15 times. Each iteration begins by authenticating against the \acs{OSL} identity provider (i.e. Keycloak\footnote{https://www.keycloak.org}), retrieving the bundled \acs{CFS} specification via \acs{TMF}633 (Service Catalog Management) and submitting a \acs{TMF}641 service order referencing it. The order includes the complete set of service characteristics that would otherwise be specified through the \acs{OSL} ordering form. These were exactly the same across all iterations, apart from the network slice differentiator, incremented between runs. Once submitted, the order is acknowledged, triggering the \acs{LCM} rules responsible for provisioning the bundled services.
+
+Afterwards, the script monitors each \acs{RFS} sequentially, following the same order in which the services are provisioned by \acs{OSL}. To measure the provisioning process, timestamps are collected from two different sources. The \acs{TMF}638 service inventory provides the creation time of each service and the time at which \acs{OSL} reports it as active. For services deployed as Helm charts (\acs{HaaS}), the corresponding Argo CD Application provides the synchronization start timestamp and the timestamp at which the application is first reported as healthy, derived from \texttt{.status\allowbreak.operationState\allowbreak.startedAt} and \texttt{.status\allowbreak.health\allowbreak.lastTransitionTime}, respectively, when the value of \texttt{.status\allowbreak.health\allowbreak.status} becomes \texttt{Healthy}. In addition, the script also verifies the pods of each service are running and ready, to validate each service was successfully deployed.
+
+Regarding the network slice and \acs{UE} services, these are fulfilled by the slicing generic controller, which was specifically extended to record additional characteristics needed for this evaluation. These include the request identifier returned by the Slice Manager, alongside the instants the Generic Controller received the \acs{OSL} creation message, submitted the slice creation or \acs{UE} association request to the Slice Manager, and confirmed the request had finished (either successfully or unsuccessfully, after polling). The final operation status (i.e. completed or failed) reported by the Slice Manager is also recorded, carrying the overall operation duration and the duration of each provisioned component, namely the \acs{RAN} and the \acs{CN} for the network slice, and the \acs{CN} for the \acs{UE}. Like all other \acs{TMF} characteristics, these are retrieved through the \acs{TMF}638 \acs{API} too. Before accepting these values, the script asserts that the overall operation and each of its components completed successfully, otherwise aborting the benchmark and leaving the testbed untouched for manual inspection. Each repetition is subject to a global timeout of 20 minutes, after which it is aborted and marked as failed.
+
+At the end of each iteration, the collected timestamps are labeled and appended as a new row to a results \texttt{csv} table. As supporting evidence, a markdown report records the raw \acs{TMF} \acs{API} responses and \texttt{kubectl} outputs, tracing every measurement to its original source. Lastly, the testbed is restored to its initial state by terminating all resulting services through the \acs{TMF}638 \acs{API} and, consequently, deprovisioning the containerized resources and the network resources managed by the Slice Manager.
+
+Combined, these measurements allow the total provisioning time, from order submission to the activation of the bundled \acs{CFS}, to be decomposed into the time spent provisioning each service. They also make it possible to identify the overhead introduced by \acs{OSS} and the underlying orchestration components, Argo CD for \acs{HaaS} and the Generic Controller and Slice Manager for network slice and \acs{UE} provisioning.
+
+Since \acs{OSL}, the generic controller, and the Kubernetes cluster hosting Argo CD and the \acs{OSS}-ordered services all run on the same \acs{VM}, they share a common system clock, allowing their recorded timestamps to be directly compared. The Slice Manager, in contrast, runs on a separate host and measures the duration of its operations (i.e. core and \acs{RAN} provisioning) internally, using its own clock. As a result, each measured interval is computed exclusively on timestamps from the same host, ensuring that clock skew does not affect the results.
+
+
 \subsection{Results and Discussion}
 \label{chap:results:delivery:discussion}
+
+Figure~\ref{fig:results:oslProvisioning} reports the orchestration times of each individual \acs{TMF} service, measured from service order until it is reported active, healthy, and ready for use, with subsequent services orchestrated only once the previous one is marked healthy.
+
+
+These provisioning times were obtained through an experimentation process that was repeated 15 times.
+COMPLETED SUCCESSFULLY STUFF
+
+All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 VM with 16 vCPUs, 32 GB RAM, and 256 GB disk.
+
+15 times
