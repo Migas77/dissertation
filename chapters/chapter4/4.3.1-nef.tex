@@ -1,7 +1,9 @@
 \subsection{\acs{NEF}}
 \label{chap:impl:exposure:nef}
 
-As it has been repeatedly noted throughout this document, the \acs{NEF} is the primary network function of the \acs{5GC} \acs{SBA} responsible for the exposure of network capabilities to third parties. Following the analysis of the available \acs{NEF} implementations conducted in Section~\ref{exposure:NEFimplementations}, the NEFSim~\cite{NEFsim}, as extended by \acs{ITAv}~\cite{NEFemulatorAtnog}, was selected as the most suitable choice for this role within the testbed. This selection was motivated by a variety of factors:
+As it has been repeatedly noted throughout this document, the \acs{NEF} is the primary network function of the \acs{5GC} \acs{SBA} responsible for the exposure of network capabilities to third parties. The testbed developed in this work follows the same principle, relying on the \acs{NEF} as the primary entry point for external interactions with the \acs{5GC}.
+
+Based on the analysis of the available \acs{NEF} implementations conducted in Section~\ref{exposure:NEFimplementations}, the NEFSim~\cite{NEFsim}, as extended by \acs{ITAv}~\cite{NEFemulatorAtnog}, was selected as the most suitable choice for this role within the testbed. This selection was motivated by a variety of factors:
 
 \begin{enumerate}
     \item \textbf{Wider coverage of \acs{NEF} northbound \acs{API} suite}~\cite{ETSI_TS_129_522_V18_11_0}\textbf{:} including the \textit{PfdManagement}, \textit{MonitoringEvent}, \textit{AsSessionWithQoS} and \textit{TrafficInfluence} \acsp{API} \fix{COMPLETE THIS};
@@ -11,7 +13,27 @@ As it has been repeatedly noted throughout this document, the \acs{NEF} is the p
 
 Hence, in its original purpose, the NEFSim establishes a simulated environment which exposes the set of \acs{NEF} northbound \acsp{API}, without depending on an underlying \acs{5G} core deployment. This way, in the original design, all responses produced by the \acsp{API} would be completely decoupled from actual network state, essentially operating as stubs that conform to the specification. This approach is not suitable for a real testbed, where customers expect the opportunity to develop and validate network application behavior against live traffic, with real \acsp{UE} and live \acs{QoS} sessions. Use cases that depend on network conditions observed during execution, such as throughput and latency, cannot be verified through simply simulated responses.
 
-Therefore, at \acs{ITAv}, the NEFSim implementation is directly integrated with the 5GAIner infrastructure, extending its role beyond a purely simulated environment and allowing application developers to actually incorporate network behavior into their business logic. This is the case for the \textit{AsSessionWithQoS} \acs{API}, but is not the case for all northbound \acsp{API} specified in Appendix~\ref{appendix:NEF}. Thus, in the context of this dissertation, the \textit{AnalyticsExposure} \acs{API} was integrated with the NEFSim implementation, to expose real network metrics to external consumers. By combining these two \acsp{API}, network application developers are equipped with the instruments to both influence and observe network behavior according to their application requirements: configuring and enforcing specific \acs{QoS} requirements through the \textit{AsSessionWithQoS} \acs{API}, while monitoring and reacting to live network conditions, with the \textit{AnalyticsExposure} \acs{API}.
+Therefore, at \acs{ITAv}, there is an ongoing effort to integrate the \acs{NEF}Sim implementation with the \acs{5G} network, extending its role beyond a purely simulated environment and allowing application developers to actually incorporate network behavior into their business logic. This is the case for the \textit{AsSessionWithQoS} \acs{API}, but does not yet cover most of the supported northbound \acsp{API} described previously.
+
+Thus, in the scope of this dissertation, the \acs{NEF}Sim implementation is extended along two distinct dimensions. First, the \textit{AsSessionWithQoS} \acs{API} was partially reimplemented to integrate with an updated version of the \acs{ITAv} Slice Manager, already used on the generic controller implementation, which interacts with the Huawei \acs{5G} network to control session \acs{QoS} within a given slice. Second, the \textit{AnalyticsExposure} \acs{API} was developed from scratch and integrated with the testbed's observability mechanisms, to expose real network metrics to external consumers. By combining these two \acsp{API}, network application developers are equipped with the instruments to both influence and observe network behavior according to their application requirements: configuring and enforcing specific \acs{QoS} requirements through the \textit{AsSessionWithQoS} \acs{API}, while monitoring and reacting to live network conditions, with the \textit{AnalyticsExposure} \acs{API}.
+
+\subsubsection{AsSessionWithQoS \acs{API}}
+\label{chap:impl:exposure:nef:AsSessionWithQoS}
+
+The \textit{AsSessionWithQoS} \acs{API}, defined in \acs{3GPP} TS~29.522~\cite{ETSI_TS_129_522_V18_11_0}, allows an \acs{AF} to request a specific \acs{QoS} for the traffic of a given \acs{UE}, by creating a subscription resource at the \acs{NEF}. Each subscription identifies the target \acs{UE}, the requested \acs{QoS}, and a notification destination to which the \acs{NEF} reports relevant events throughout the session's lifetime (e.g. failed resources allocation). In the \acs{ITAv}'s \acs{NEF}Sim current implementation~\cite{NEFemulatorAtnog}, the endpoints of this \acs{API} are decoupled from the network through a driver interface, which exposes two operations: changing the \acs{QoS} of a set of \acsp{UE}, and reverting it to its default values. Two drivers implement this interface, a no-operation driver, which preserves the original simulated behavior, and a Huawei driver, which applies the requested \acs{QoS} to the \acs{5G} network through the Slice Manager \acs{API}. The active driver is selected at deployment time, through the NEFSim configuration.
+
+The original Huawei driver targeted a previous version of the Slice Manager \acs{API}. The two versions differ substantially with different endpoint definitions and request and response schemas. Furthermore, the previous version processed requests synchronously, whereas the the current version adopts an asynchronous processing model in which each operation is assigned a unique identifier that must be used to subsequently retrieve the execution outcome. The \acs{API} and the driver was therefore adapted to accommodate these changes and ensure compatibility with the current \acs{API} specification. Figure~\ref{fig:impl:exposure:nef:AsSessionWithQoS:sequence} illustrates the interaction sequence between a subscriber, the \acs{NEF} (using the updated driver) and the Slice Manager, highlighting the asynchronous processing for the creation of a \acs{QoS} subscription.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/as-session-with-qos-sequence.pdf}
+    \caption{Sequence Diagram}
+    \label{fig:impl:exposure:nef:AsSessionWithQoS:sequence}
+\end{figure}
+
+The \acs{NEF}Sim \textit{AsSessionWithQoS} \acs{API} follows an optimistic, asynchronous model: the \acs{QoS} subscription is acknowledged as successfully created before the requested \acs{QoS} is actually enforced in the network (in this case, the network slice), and the subscriber is only informed of the final outcome later, through a notification. 
+
+based on patches as the initial ue slice attachement is also established by openslice
 
 \subsubsection{AnalyticsExposure \acs{API}}
 \label{chap:impl:exposure:nef:AnalyticsExposure}

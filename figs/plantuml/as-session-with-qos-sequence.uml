@@ -1,0 +1,36 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "QoS\nSubscriber" as AF
+box "NEFSim"
+  participant "AsSessionWithQoS\nAPI" as API
+  participant "Huawei\nDriver" as DRV
+end box
+participant "Slice\nManager" as SM
+
+AF -> API : 1. POST /{scsAsId}/subscriptions\n[UE, qosReference | altQoSReferences | altQosReqs,\ndnn, snssai, notificationDestination]
+rnote over API : 2. Resolve UE, derive QoS profile\nand store subscription
+API --> AF : 3. 201 Created [Location]
+API ->> DRV : 4. change_qos(subscription, UE, QoS profile)
+activate DRV
+DRV -> SM : 5. GET /core/ues/{supi}/slice-associations?dnn&snssai
+SM --> DRV : 6. 200 OK [slice_id]
+DRV -> SM : 7. PATCH /core/ues/{supi}/qos\n[slice_id, uplink / downlink AMBR]
+SM --> DRV : 8. 202 Accepted [request_id]
+loop until state is completed or failed
+  DRV -> SM : 9. GET /operations/{request_id}
+  SM --> DRV : 10. 200 OK [state]
+end
+alt state is completed
+  DRV -> AF : 11.a. POST {notificationDestination}\nUserPlaneNotificationData [eventReport.event=SUCCESSFUL_RESOURCES_ALLOCATION]
+else state is failed, request error or no UE slice association
+  DRV -> AF : 11.b. POST {notificationDestination}\nUserPlaneNotificationData [eventReport.event=FAILED_RESOURCES_ALLOCATION]
+end
+deactivate DRV
+
+@enduml
