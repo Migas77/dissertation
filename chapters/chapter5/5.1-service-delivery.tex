@@ -33,15 +33,26 @@ Since \acs{OSL}, the generic controller, and the Kubernetes cluster hosting Argo
 \subsection{Results and Discussion}
 \label{chap:results:delivery:discussion}
 
-\later{specifically saying how theyh are ordered sequentially, the services}
+From the timestamps and durations collected over 15 repetitions, the provisioning time of each service and the overall deployment time were calculated and averaged across all repetitions. These measurements were further broken down and attributed to each component participating in the provisioning process, identifying their contributions to the total provisioning time.
 
+Figure~\ref{fig:results:oslProvisioning} reports the orchestration times of each individual \acs{TMF} service, measured from service order until it is reported active, healthy, and ready for use, with subsequent services orchestrated only once the previous one is marked healthy, as per the pre-configured \acs{LCM} rules. Following this order, the network slice was provisioned first, followed by the \acs{UE}, both fulfilled by the Generic Controller, which maps the \acs{TMF} resource creation event into calls to the testbed's Network Slice Manager. Then, the remaining \acs{HaaS} services (monitoring components, including Grafana dashboards and the \acs{UE} prober) and, finally, the network exposure interfaces (CAPIF, \acs{NEF}, and CAMARA) were orchestrated.
 
-Figure~\ref{fig:results:oslProvisioning} reports the orchestration times of each individual \acs{TMF} service, measured from service order until it is reported active, healthy, and ready for use, with subsequent services orchestrated only once the previous one is marked healthy.
+\begin{figure}[tb]
+\centering
+\centerline{\includegraphics[width=0.85\linewidth]{figs/osl_provisioning_donut.pdf}}
+\caption{Service Provisioning Times within OpenSlice}
+\label{fig:results:oslProvisioning}
+\end{figure}
 
+At this point, all necessary slicing, monitoring and exposure capabilities were instantiated and configured, with a total provisioning time of $521.662 \pm 37.698\ \mathrm{s}$. This duration represents the time required to provision all network and supporting infrastructure to receive an application experiment. Once these services are healthy, the application is deployed and given CAPIF access to automatically discover the remaining exposure interfaces and start. Including the application, the complete provisioning process took $627.581 \pm 36.500\ \mathrm{s}$.
 
-These provisioning times were obtained through an experimentation process that was repeated 15 times.
-COMPLETED SUCCESSFULLY STUFF
+For each individual service, provisioning time is primarily determined by the underlying backend, i.e. Kubernetes or Slice Manager, and varies with the provisioned component's complexity. CAPIF exhibits the longest deployment time at $\approx 4~\mathrm{min}$, with the remaining containerized deployments ranging between $34\ \mathrm{s}$ and $55\ \mathrm{s}$. The network slice and the UE, provisioned through the Slice Manager, complete in $12.142 \pm 0.525\ \mathrm{s}$ and $1.490 \pm 0.153\ \mathrm{s}$, respectively. Across all deployments, OpenSlice's orchestration overhead amounts to $208.252 \pm 15.659\ \mathrm{s}$.
 
-All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 VM with 16 vCPUs, 32 GB RAM, and 256 GB disk.
+This overhead corresponds to the time OpenSlice takes to detect a service is ready and trigger the next one in the chain. Since OpenSlice's asynchronous rule engine evaluates \acs{LCM} rules only at one-minute intervals, active-service detection happens at most once per minute, thus strongly impacting the overhead regardless of provisioning method (e.g. \acs{HaaS}).
 
-15 times
+\subsection{Conclusions}
+\label{chap:results:delivery:conclusion}
+
+Overall, these results establish that a complete testbed environment, including the network slice, \acs{UE} association, monitoring stack, exposure interfaces and the network application, can be self provisioned by a vertical experimenter through a single service order in approximately $10.46\ \mathrm{min}$. Of this duration, roughly one third ($\approx 33\%$) is attributed to the orchestration overhead introduced by OpenSlice, which represents the cost of the abstraction provided by the \acs{OSS}. This overhead stems mainly from the periodic evaluation of \acs{LCM} rules, an inherent characteristic of the OpenSlice rule engine, outside the scope of this dissertation and of the controllers and services developed in this work. In contrast, network resources provisioned through the Slice Manager contribute marginally, with the deployment of the containerized exposure interfaces, particularly CAPIF, accounting for the majority of the backend provisioning time. Finally, the low variability observed across the 15 repetitions, with a standard deviation below $6\%$ of the total provisioning time, indicates a consistent delivery process, supporting the execution of reproducible experiments on the testbed.
+
+\later{add other results that I had that were removed from the paper}
