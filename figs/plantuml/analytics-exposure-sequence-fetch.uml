@@ -1,0 +1,32 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Analytics\nConsumer" as AF
+box "NEFSim"
+  participant "AnalyticsExposure\nAPI" as API
+  participant "Event\nHandler" as HDL
+end box
+participant "Prometheus\nHTTP API" as PROM
+
+AF -> API : 1. POST /{afId}/fetch\n[analyEvent = UE_COMM | WLAN_PERFORMANCE, \nanalyEventFilter (temporalGranSize, appIds, appServerAddrs,\nueCommReqs, wlanReqs, listOfAnaSubsets),\nanalyRep (startTs, endTs), tgtUe]
+rnote over API : 2. Validate supported event\nand filter, resolve target UEs
+API -> HDL : 3. get_analytics(analytics_request)
+activate HDL
+rnote over HDL : 4. Resolve time window\nand build queries
+HDL -> PROM : 5. GET /api/v1/query | /api/v1/query_range\n[query, time | start, end, step]
+PROM --> HDL : 6. 200 OK [vector | matrix]
+rnote over HDL : 7. Convert results\ninto AnalyticsData
+HDL --> API : 8. [AnalyticsData]
+deactivate HDL
+alt analytics available
+  API --> AF : 9.a. 200 OK\nAnalyticsData [ueCommInfos | wlanInfos]
+else no analytics available
+  API --> AF : 9.b. 204 No Content
+end
+
+@enduml

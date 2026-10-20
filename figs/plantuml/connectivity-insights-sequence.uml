@@ -1,0 +1,64 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam DatabaseBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Insights\nSubscriber" as AF
+box "CAMARA Gateway"
+  participant "Connectivity Insights\nSubscriptions API" as API
+  database "Redis" as REDIS
+end box
+participant "NEFSim\nAnalyticsExposure API" as NEF
+
+== Subscription Creation ==
+
+AF -> API : 1. POST /connectivity-insights-subscriptions/v0.6/subscriptions\n[sink, types, config (subscriptionDetail (device, applicationServer,\napplicationProfileId), subscriptionExpireTime, subscriptionMaxEvents, initialEvent)]
+rnote over API : 2. Validate device identifier and\napplicationServer.ipv4Address
+alt invalid request
+  API --> AF : 3. 400 Bad Request [INVALID_ARGUMENT]
+else valid request
+  API -> REDIS : 4. GET application_profiles:{applicationProfileId}
+  REDIS --> API : 5. [ApplicationProfile (JSON)] | nil
+  alt profile not found
+    API --> AF : 6.a. 404 Not Found [NOT_FOUND]
+  else profile found
+    rnote over API : 6.b. Assign subscriptionId (UUID)
+    API -> REDIS : 7. SET connectivity_insights_subscriptions:{subscriptionId}\n[Subscription (status = ACTIVE)]
+    rnote over API : 8. Translate request into AnalyticsExposureSubsc
+    API -> NEF : 9. POST /3gpp-analyticsexposure/v1/{afId}/subscriptions\n[analyEventsSubs (analyEvent = WLAN_PERFORMANCE, tgtUe.gpsi, analyEventFilter),\nanalyRepInfo (notifMethod = PERIODIC, repPeriod, maxReportNbr, monDur, immRep),\nnotifUri = {gwCallback}/{subscriptionId}, notifId]
+    NEF --> API : 10. 201 Created [AnalyticsExposureSubsc (self)] | error
+    alt NEF subscription created
+      API -> REDIS : 11.a. SET connectivity_insights_subscriptions_nef_url:{subscriptionId} [self]
+      API --> AF : 12.a. 200 OK [subscriptionId, sink, types, config,\nstartsAt, expiresAt, status = ACTIVE]
+    else NEF error
+      API -> REDIS : 11.b. DEL connectivity_insights_subscriptions:{subscriptionId}
+      API --> AF : 12.b. 404 Not Found | 500 Internal Server Error
+    end
+  end
+end
+
+== Insights Reporting ==
+
+loop every repPeriod, while the NEF subscription is active
+  NEF -> API : 13. POST {gwCallback}/{subscriptionId}\nAnalyticsEventNotification [notifId, analyEventNotifs (wlanInfos)]
+  API -> REDIS : 14. GET connectivity_insights_subscriptions:{subscriptionId}
+  REDIS --> API : 15. [Subscription (applicationProfileId)]
+  API -> REDIS : 16. GET application_profiles:{applicationProfileId}
+  REDIS --> API : 17. [ApplicationProfile (networkQualityThresholds)]
+  rnote over API : 18. Filter wlanPerUeIdInfos for device GPSI and evaluate:\nuplinkRate >= targetMinUpstreamRate\ndownlinkRate >= targetMinDownstreamRate
+  opt subscriptionMaxEvents defined
+    API -> REDIS : 19. INCR connectivity_insights_subscriptions_counter:{subscriptionId}
+    REDIS --> API : 20. [counter]
+    opt counter >= subscriptionMaxEvents
+      rnote over API : 21. Terminate subscription\n(MAX_EVENTS_REACHED)
+    end
+  end
+  API ->> AF : 22. POST {sink} CloudEvent [x-correlator, data (papplicationProfileId,\ntargetMinUpstreamRate = "meets | unable to meet the application requirements",\ntargetMinDownstreamRate = "meets | unable to meet the application requirements"),\ntime, type = org.camaraproject.connectivity-insights-subscriptions.v0.network-quality]
+  API --> NEF : 23. 204 No Content
+end
+
+@enduml

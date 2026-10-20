@@ -1,0 +1,36 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Profiles\nConsumer" as AF
+box "CAMARA Gateway"
+  participant "Application Profiles\nAPI" as API
+  participant "Application Profiles\nRedis Driver" as DRV
+end box
+database "Redis" as REDIS
+
+AF -> API : 1. POST /application-profiles/v0.5/application-profiles\n[networkQualityThresholds, computeResources]
+rnote over API : 2. Validate and Store Application Profile
+alt invalid request
+  API --> AF : 3. 400 Bad Request [INVALID_ARGUMENT]
+else valid request
+  API -> DRV : 4. create_profile(application_profile_req)
+  activate DRV
+  rnote over DRV : 5. Assign applicationProfileId (UUID)
+  DRV -> REDIS : 6. SET application_profiles:{applicationProfileId}\n[ApplicationProfile (JSON)]
+  REDIS --> DRV : 7. OK | error
+  alt profile stored
+    DRV --> API : 8.a. [ApplicationProfile]
+    API --> AF : 9.a. 200 OK [applicationProfileId,\nnetworkQualityThresholds, computeResources]
+  else storage failure
+    DRV --> API : 8.b. InternalServerError
+    API --> AF : 9.b. 500 Internal Server Error
+  end
+  deactivate DRV
+end
+
+@enduml
