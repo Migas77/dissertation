@@ -28,11 +28,16 @@
 \renewcommand{\DTstyle}{\normalfont}            % dirtree style to default font
 \definecolor{templatecolor}{HTML}{9B301C}       % color template top page
 
-\usepackage[
-    all=normal,
-    paragraphs=tight,
-]{savetrees}
+% \usepackage[
+%     all=normal,
+%     paragraphs=tight,
+% ]{savetrees}
 
 \usepackage{ragged2e}
 \usepackage{xurl}
 \urlstyle{same}
+
+\newcommand{\bulletparagraph}[1]{%
+  \paragraph{#1}\mbox{}\par\nobreak
+}
+
