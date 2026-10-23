@@ -29,11 +29,37 @@ In particular, the Network slice specification should be derived from the \acs{G
 
 \bulletparagraph{\textit{User Equipment}}
 
-The User Equipment service should transparently register a \acs{UE} with the \acs{5G} network and attach it to a provisioned network slice. To accomplish this, the experimenter must be able to reference the slice identifier, i.e. the \acs{S-NSSAI}, and the target \acs{DNN} for the \acs{PDU} session.
+The User Equipment service should transparently register a \acs{UE} with the \acs{5G} network and attach it to a provisioned network slice. The design and management of \acs{5G} \acs{UE} are defined across several \acs{3GPP} specifications, namely 3GPP TS 23.501~\cite{}, 3GPP TS 24.527~\cite{} and 3GPP TS 23.503~\cite{}. However, in contrast to network slices, no common template is standardized or recommended for the definition of a \acs{UE}. Because of this, this dissertation proposes a minimal blueprint for modeling \acs{5G} \acsp{UE}, which is presented in Table~\ref{tab:proposal:delivery:ue-blueprint}.
 
-The design and management of \acs{5G} \acs{UE} are defined across several \acs{3GPP} specifications, namely 3GPP TS 23.501~\cite{}, 3GPP TS 24.527~\cite{} and 3GPP TS 23.503~\cite{}. However, in contrast to network slices, no common template is standardized or recommended for the definition of a \acs{UE}. Because of this, this dissertation proposes a minimal blueprint for modeling \acs{5G} \acsp{UE}, which is presented in Table~\ref{}.
+The blueprint identifies the requested slice for the \acs{UE} via the \acs{SST} and optional \acs{SD} fields. In addition, it specifies the aggregate bitrate limits, as well as optional static addressing for the established \acs{PDU} session. These fields constitute a minimal common set and may be extended with implementation specific parameters required by different \acs{5G} distributions.
 
-As the \acs{UE} is only meaningful for the experiment in the context of a slice, the service should declare an explicit dependency to the Network Slice service. That dependency ensures the slice is active before the \acs{UE} is registered, and that the \acs{UE}’s subscription is removed from the \acs{5G} network when the slice is decommissioned. \later{move this}
+\begin{table}[htbp]
+    \centering
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}m{\widthof{SessionAmbr : Downlink}}|
+        >{\RaggedRight\arraybackslash}X|}
+        \hline
+        \textbf{\acs{UE} Parameter} & \textbf{Description} \\
+        \hline
+        Requested\acs{NSSAI} : \acs{SST}  & Slice Service Type that identifies the category of the network slice requested by the \acs{UE} \\
+        \hline
+        Requested\acs{NSSAI} : \acs{SD}  & Optional Slice Differentiator that, with \acs{SST}, forms the \acs{S-NSSAI} uniquely identifying the slice requested by the \acs{UE} \\
+        \hline
+        SessionAmbr : Uplink & Maximum bitrate allowed for \acs{UE} uplink traffic \\
+        \hline
+        SessionAmbr : Downlink & Maximum bitrate allowed for \acs{UE} downlink traffic \\
+        \hline
+        PduSession : IPv4 & Optional field to request a static IPv4 address for the \acs{UE} \\
+        \hline
+        PduSession : IPv6 & Optional field to request a static IPv6 address for the \acs{UE} \\
+        \hline
+    \end{tabularx}
+    \caption{\acs{UE} blueprint specification}
+    \label{tab:proposal:delivery:ue-blueprint}
+\end{table}
+
+As the \acs{UE} is only meaningful for the experiment in the context of a slice, the service should declare an explicit dependency to the Network Slice service. That dependency ensures the slice is active before the \acs{UE} is registered, and that the \acs{UE}’s subscription is removed from the \acs{5G} network when the slice is decommissioned.
 
 
 \bulletparagraph{\textit{Network Exposure}}
@@ -49,9 +75,9 @@ Moreover, depending on the actual \acs{NEF} and CAMARA implementation, the verti
 
 The Network Observability service should enable the collection of network metrics for the resources of the experiment, i.e. the network slice and its \acsp{UE}. Section~\ref{chap:proposal:observability} identifies passive and active monitoring as the two complementary mechanisms through which these metrics can be obtained.
 
-Since active monitoring introduces additional load on the shared infrastructure, it should be exposed as an optional characteristic, disabled by default. When enabled, experimenters should be able to configure the probing conditions, including the probing frequency (interval), number of probes, payload size, and timeout for each probe. More importantly, this configuration should allow experimenters to specify the target \acsp{UE} through their \acsp{IMSI}, so probing and the collected metrics are restricted to the selected devices.\later{should also be updateable}
+Since active monitoring introduces additional load on the shared infrastructure, it should be exposed as an optional characteristic, disabled by default. When enabled, experimenters should be able to configure the probing conditions, including the probing frequency (interval), number of probes, payload size, and timeout for each probe. More importantly, this configuration should allow experimenters to specify the target \acsp{UE} through their \acsp{IMSI}, so probing and the collected metrics are restricted to the selected devices. This configuration should also be updatable throughout the experiment, without requiring the service to be redeployed.
 
-The metrics of each experiment, including those continuously gathered through passive monitoring, should be presented to the vertical through dedicated visual dashboards, also delivered as part of this service. As multiple experiments share the same infrastructure, each dashboard should be restricted to the network slice and \acsp{UE} of its experiment. For this, at least the network slice identifier shall be supplied.
+The metrics of each experiment, including those continuously gathered through passive monitoring, should be presented to the vertical through dedicated visual dashboards, also delivered as part of this service. As multiple experiments share the same infrastructure, each dashboard should be restricted to the network slice and \acsp{UE} of its experiment. For this, the network slice identifier shall be supplied. Additionally, since new \acsp{UE} may be registered and attached to the slice during the experiment, both the dashboards and the active probes must be updated dynamically to reflect the current state of the devices, including any changes to the \acs{IP} addresses of existing \acsp{UE}.
 
 
 \bulletparagraph{\textit{Network Application}}
@@ -100,16 +126,23 @@ This duality is also present across the full list of \acs{TMF} \acs{API} mention
 
 Therefore, the definition of orderable specifications relies on catalog-centric \acsp{API}: the \acs{TMF}~633 (Service Catalog Management) and \acs{TMF}~634 (Resource Catalog Management) \acsp{API}. In particular, the \acs{TMF}~633 \acs{API} exposes the service catalog described in Section~\ref{chap:proposal:delivery:design}, allowing experimenters to discover the available service specifications and their configurable characteristics, while the \acs{TMF}~634 \acs{API} plays the equivalent role for the underlying resource specifications. Combined, these \acsp{API} form an abstraction layer that conceals the complexity of the underlying procedures from the experimenter.
 
-Furthermore, since each specification is essentially a set of typed characteristics, it provides a natural basis for the definition of proposed templates. The parameters of the \acs{GSMA} \acs{GST} (instantiated as a \acs{NEST}) of the \acs{UE} blueprint, or of any other testbed components can be expressed as characteristics of \acs{TMF} service and resource specifications. As a result, network capabilities can be offered through the \acs{OSS} as technology-agnostic services that can be reused across different experiments.
+Furthermore, since each specification is essentially a set of typed characteristics, it provides a natural basis for the definition of proposed templates. The parameters of the \acs{GSMA} \acs{GST} (instantiated as a \acs{NEST}), of the \acs{UE} blueprint, or of any other testbed components can be expressed as characteristics of \acs{TMF} service and resource specifications. As a result, network capabilities can be offered through the \acs{OSS} as technology-agnostic services that can be reused across different experiments.
 
-Once designed, services are instantiated through service orders submitted to the management platform via the \acs{TMF}~641 (Service Ordering Management) \acs{API}, which triggers the issuance of the corresponding resource orders through the \acs{TMF}~652 (Resource Ordering Management) \acs{API}. The services required to conduct an experiment, described in Section~\ref{chap:proposal:delivery:design}, have interdependencies that must be accounted for when defining the provisioning workflow. These dependencies determine the order in which services should be instantiated and the conditions that must be satisfied before each service can be provisioned.
+Once designed, services shall be instantiated through service orders submitted to the management platform via the \acs{TMF}~641 (Service Ordering Management) \acs{API}, which triggers the issuance of the corresponding resource orders through the \acs{TMF}~652 (Resource Ordering Management) \acs{API}. These orders should then be decomposed and delegated to the appropriate orchestrators responsible for the deployment of each resource.
 
-According to this, 
+Given the heterogeneity of experimentation components, the testbed must support multiple deployment paradigms, accommodating both \acs{NFV} and cloud-native resources by leveraging \acsp{NFVO} and container orchestration platforms such as Kubernetes. In addition, support for custom orchestrators or resource controllers may also be beneficial, allowing experimenters to integrate domain or proprietary components, and expose them through standardized management interfaces. Depending on the underlying \acs{5G} infrastructure, these may include, for instance, the management and provisioning of \acs{5G} resources such as network slices and \acsp{UE}.
 
-Conceptually, it should also start that must be provisioned before the network application.
+The \acs{OSS} is therefore entrusted with this responsibility. This delegation confines the actual deployment and lifecycle management of resources to each orchestrator, while the \acs{OSS} maintains a single, uniform service model across them all. As a result, experimenters can order and manage services in the same way regardless of how they are realized, and new orchestrators or deployment paradigms can be more easily integrated, abstracted by the specifications exposed in the service catalog.
 
+Beyond the deployment of individual services, the provisioning workflow must also account for the dependencies between them. These dependencies determine the order in which services are instantiated and the conditions that must verify before each one can be provisioned. For this reason, the \acs{OSS} must provide a way to declare these dependencies within the service specifications and use them to coordinate the lifecycle of all services in an experiment. During instantiation, services are provisioned in the order their dependencies impose, and each service is only deployed once its prerequisites are active and healthy. Such relationships should also be registered on the inventory, at the level of each service instance. Conversely, when any component fails to be instantiated, the \acs{OSS} must halt the provisioning of any dependent services and report the failure, so that the experiment and the testbed are never left in a partially deployed, inconsistent state.
 
-\acs{TMF} 641 then allows these specifications to be instantiated through service orders, which carry the characteristic values chosen by the vertical and trigger the fulfillment of the corresponding services. Finally, \acs{TMF} 638 should maintain the runtime record of each provisioned service, including its state and its relationships to other services of the experiment.
+Section~\ref{chap:proposal:delivery} identified the suite of services required to conduct a complete experiment for a network application using the proposed testbed functionality, and their dependencies. Combining these dependencies yields the provisioning chain depicted in Figure~\ref{proposal:delivery:orchestration-lifecycle}, which organizes the orchestration of the experiment into sequential phases. After the onboarding phase, in which the vertical designs and configures the service bundle of the experiment, the network slice is provisioned and the \acsp{UE} are attached to it, establishing the connectivity on which every subsequent service relies. The monitoring phase would then deploy the observability stack, probes and dashboards, scoped to the slice and \acsp{UE} just provisioned. The exposure phases should follow, provisioning \acs{CAPIF}, the \acs{NEF} and the CAMARA \acsp{API} in the order imposed by their dependency chain, before the vertical application is finally deployed and configured to consume them. Should any phase fail, the \acs{OSS} should refrain from provisioning any subsequent services. Similarly, terminating the experiment should trigger the termination of all provisioned services.
 
-Particularly, at both resource and service levels
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figs/drawio/service_provisioning_chain.pdf}
+    \caption{Sequential Orchestration Phases for a complete Network Application Experiment}
+    \label{proposal:delivery:orchestration-lifecycle}
+\end{figure}
 
+Lastly, the runtime state of each experiment should be tracked through the \acs{TMF}~638 (Service Inventory Management) and \acs{TMF}~639 (Resource Inventory Management). The service inventory would record each service instance, its state and its relationships to other instances, allowing the \acs{OSS} to identify the dependent services to be created or terminated when an experiment is commissioned or decommissioned. The resource inventory would assume the equivalent role for the underlying resources, confirming that they are allocated on or released from the shared infrastructure.
