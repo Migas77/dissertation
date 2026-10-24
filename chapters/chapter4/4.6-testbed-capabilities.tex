@@ -1,2 +1,84 @@
 \section{Testbed Capabilities}
 \label{chap:impl:capabilities}
+
+\begin{table}[htb!]
+% Fraction of \linewidth taken by the Capability column; Requirements fits one functional and one non-functional requirement per line, Use Case is as wide as its header and Realization takes the remaining width
+\newcommand{\capfrac}{0.2890}
+\newlength{\reqwidth}
+\newlength{\nclabelwidth}
+\newlength{\ucwidth}
+\newlength{\realwidth}
+\newcommand{\realization}[1]{\multicolumn{2}{>{\RaggedRight\arraybackslash}p{\dimexpr\realwidth+\arrayrulewidth-2\tabcolsep\relax}|}{\leavevmode#1}}
+% Category rows shaded with the same gray tone of the remaining tables, with \catpad of extra padding above and below the text
+\newlength{\catpad}
+\setlength{\catpad}{3pt}
+\newcommand{\category}[1]{\rowcolor{gray!15}\multicolumn{5}{|l|}{\rule[\dimexpr-\arraystretch\dp\strutbox-\catpad\relax]{0pt}{\dimexpr\arraystretch\ht\strutbox+\arraystretch\dp\strutbox+2\catpad\relax}\textbf{\textit{#1}}}}
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+% Remove booktabs vertical padding so that the vertical rules join the horizontal ones
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+\settowidth{\nclabelwidth}{CAMARA}%
+\settowidth{\ucwidth}{\textbf{Case}}%
+\addtolength{\ucwidth}{4pt}%
+\settowidth{\reqwidth}{FR00, NFR0}%
+\setlength{\realwidth}{\dimexpr\linewidth-\capfrac\linewidth-\reqwidth-2\tabcolsep-\ucwidth-2\tabcolsep-6\arrayrulewidth\relax}%
+\begin{tabular}{|>{\RaggedRight\looseness=-1\arraybackslash}p{\capfrac\linewidth}|l|>{\RaggedRight\arraybackslash}p{\dimexpr\realwidth-\nclabelwidth-4\tabcolsep\relax}|>{\raggedright\arraybackslash}p{\reqwidth}|@{}>{\centering\arraybackslash}m{\ucwidth}@{}|}
+\toprule
+\textbf{Capability} & \multicolumn{2}{l|}{\textbf{Realization}} & \textbf{Require-}\newline\textbf{ments} & \multicolumn{1}{@{}>{\centering\arraybackslash}p{\ucwidth}@{}|}{\textbf{Use}\newline\textbf{Case}} \\
+\midrule
+\category{Resource Lifecycle Management and Service Delivery} \\
+\midrule
+Service design, ordering, provisioning and \acs{LCM} & \realization{OpenSlice \acs{OSS}, accessible via the user interface and \acs{TMF} Open \acsp{API}} & \ref{enum:fr:slice}, \ref{enum:nfr:packaging} & \checkmark \\
+\hline
+Provisioning of network slices with custom \acs{QoS} & \realization{5GAIner Slice Manager through an OpenSlice Generic Controller} & \ref{enum:fr:slice}, \ref{enum:nfr:uplink-bitrate} & \checkmark \\
+\hline
+Provisioning and association of \acs{UE} with provisioned slice & \realization{5GAIner Slice Manager through an OpenSlice Generic Controller} & \ref{enum:fr:slice}, \ref{enum:fr:stream} & \checkmark \\
+\hline
+Orchestration of containerized services & \realization{Deployment on Kubernetes via OpenSlice's CRIDGE component} & \ref{enum:nfr:packaging} & \checkmark \\
+\hline
+Orchestration of virtualized \acs{NF} and applications & \realization{Delegation to \acs{OSM} via \acs{ETSI} \acs{SOL}005} & \ref{enum:nfr:packaging} & \\
+\midrule
+\category{Network Exposure} \\
+\midrule
+Secure \acs{API} publication, discovery and invocation & \realization{\acs{CAPIF}, specifically Open\acs{CAPIF}} & \ref{enum:nfr:secure-exposure} & \checkmark \\
+\hline
+Declaration of application network quality thresholds & CAMARA & Application Profiles~\cite{CAMARAapis} & \ref{enum:fr:qos-profile}, \ref{enum:fr:monitoring-profile} & \checkmark \\
+\hline
+\multirow{2}{=}{Configuring~\acs{QoS} session for a device} & \acs{NEF} & AsSessionWithQoS~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{\ref{enum:fr:qos-request},~\ref{enum:fr:qos-change}, \ref{enum:nfr:qos-enforcement}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Quality on Demand~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Subscription~to network analytics} & \acs{NEF} & AnalyticsExposure~\cite{ETSI_TS_129_522_V18_11_0} & \multirow{2}{=}{\ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Connectivity Insights\newline Subscriptions~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Device location and geofencing notifications} & \acs{NEF} & MonitoringEvent~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{\ref{enum:fr:ue-tracking}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Device Location~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Device reachability and roaming notifications} & \acs{NEF} & MonitoringEvent~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{--} & \\
+\cline{2-3}
+& CAMARA & Roaming Status,\newline Reachability Status~\cite{CAMARAapis} & & \\
+\hline
+Traffic steering and other \acs{3GPP} procedures & \acs{NEF} & TrafficInfluence, PfdManagement, among others~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & -- & \\
+\midrule
+\category{Network Observability} \\
+\midrule
+Passive traffic monitoring & \realization{Data path Prometheus exporter\newline(traffic volume and throughput)} & \ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection} & \checkmark \\
+\hline
+Active monitoring & \realization{\acs{ICMP} prober\newline(\acs{RTT}, Packet Loss and \acs{RTT} jitter)} & \ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection} & \checkmark \\
+\hline
+Monitoring Visualization & \realization{Grafana dashboards} & \ref{enum:nfr:logging} & \checkmark \\
+\midrule
+\category{Notification} \\
+\midrule
+Delivery of \acs{SMS} notifications to individual \acsp{UE} & \realization{Mock \acs{SMS} \acs{API}} & \ref{enum:fr:notify-pedestrians},~\ref{enum:fr:notify-periodic}, \ref{enum:nfr:notification-time} & \checkmark \\
+\hline
+Geographic message broadcast to vehicles & \realization{Geocast of \acsp{DENM} via a 5GAIner \acs{MQTT} broker with quadtree tiling} & \ref{enum:fr:notify-vehicles},~\ref{enum:fr:notify-periodic}, \ref{enum:nfr:notification-time} & \checkmark \\
+\bottomrule
+\end{tabular}
+\caption{Summary of the realized testbed capabilities}
+\label{tab:impl:capabilities}
+\end{table}

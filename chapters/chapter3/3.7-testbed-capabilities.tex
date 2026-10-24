@@ -1,2 +1,118 @@
 \section{Testbed Capabilities}
 \label{chap:proposal:capabilities}
+
+The preceding sections defined the capabilities the proposed testbed should offer to verticals, organized into resource lifecycle management, network exposure, network observability and service delivery. This section consolidates these capabilities and maps them to the \acs{PoC} functional and non-functional requirements gathered in Section~\ref{chap:proposal:use-case:requirements}, thereby illustrating how the testbed proposed capabilities support the practical needs of real-world vertical use cases. Table~\ref{tab:proposal:capabilities} summarizes this mapping.
+
+As established in Section~\ref{chap:proposal:delivery}, at the top level, the testbed should provide a single management and automation platform (an \acs{OSS}) through which experimenters can order and manage all testbed functionality, exposed as services, via \acs{TMF} Open \acsp{API}. These services comprise the network slices and \acsp{UE} supporting the experiment, the exposure \acsp{API}, the monitoring services, and the network application itself. The platform would then delegate each service order to the appropriate orchestration and management platforms, following the dependency chain defined in that same section. In particular, the orchestration of the corresponding workloads, either as containerized or virtualized resources, would in turn fulfill the portability and deployment constraint imposed by \ref{enum:nfr:packaging}.
+
+Initially, the testbed should provision the network slices that establish the connectivity conditions for the collision detection service, following the management hierarchy described in Section~\ref{chap:proposal:resource_lifecycle}, composed of the \acs{CSMF}, \acs{NSMF} and \acs{NSSMF}. This approach reserves the resources required by the \acs{PoC} before its operation, according to the \acs{QoS} requirements specified by the experimenter, i.e. the uplink requirements to support the camera video stream. Once the slice is deployed, the roadside camera \acs{UE} would be associated with it, so that its traffic is suject to the \acs{QoS} constraints defined for that slice. In doing so, the testbed addresses the application's requirement for dedicated and isolated network resources (\ref{enum:fr:slice}), theoretically guaranteeing the uplink bitrate required to sustain the live video stream from the camera to the inference server (\ref{enum:fr:stream}, \ref{enum:nfr:uplink-bitrate}).
+
+Once the full experiment is provisioned, the application can take advantage of the network's capabilities through the exposure layer described in Section~\ref{chap:proposal:exposure}. These capabilities should be offered at two abstraction levels, by the \acs{NEF} and CAMARA \acsp{API}, and accessed through a single framework responsible for their secure publication, discovery and invocation, i.e. \acs{CAPIF}. This avoids application developers from the burden of interacting with distinct authentication servers for each exposure component, providing a unified approach to authentication and authorization (\ref{enum:nfr:secure-exposure}).
+
+Application requirements related to the camera's data session, location services, and geofencing can be addressed through these northbound interfaces, independently of the exposure model. However, both altenra
+
+
+Once the full experiment is provisioned, the application can take advantage of the network's capabilities through the exposure layer described in Section~\ref{chap:proposal:exposure}. Application requirements concerning the camera's data session, location services and geofencing procedures can be supported by the testbed's northbound \acsp{API} at two abstraction levels: \acs{NEF} and CAMARA \acsp{API}. Although both alternatives can accommodate the intended use case, they differ in terms of how comprehensively they can support each of the specified requirements, as showcased in Table~\ref{tab:proposal:capabilities}. More specifically, some functionalities, such as 
+
+. These capabilities should be offered at two abstraction levels, by the \acs{NEF} and CAMARA \acsp{API}, and
+
+
+accessed through a single framework responsible for their secure publication, discovery and invocation, i.e. \acs{CAPIF}.
+
+
+This relieves application developers from the burden of interacting with a separate authentication server for each exposure component, providing a unified approach to authentication and authorization (\ref{enum:nfr:secure-exposure}).
+
+
+It also revelasl that 
+
+specifying the actual northbound \acsp{API} that will be supporting network applications
+
+At runtime, the application would interact with the network through the exposure layer described in Section~\ref{chap:proposal:exposure}. All \acs{NEF} and CAMARA \acsp{API} should be published, discovered and invoked through \acs{CAPIF}, providing the single secure exposure layer required by \ref{enum:nfr:secure-exposure}. Through these interfaces, the application would declare the \acs{QoS} and monitoring profiles of the camera's data session (\ref{enum:fr:qos-profile}, \ref{enum:fr:monitoring-profile}), request and change the active \acs{QoS} profile (\ref{enum:fr:qos-request}, \ref{enum:fr:qos-change}) and subscribe to network analytics on the experienced network conditions (\ref{enum:fr:monitoring}). Device location retrieval, verification and geofencing notifications would, in turn, allow the application to identify and track the road users within the surveilled area (\ref{enum:fr:ue-tracking}). The time limits imposed on degradation detection (\ref{enum:nfr:degradation-detection}) and \acs{QoS} enforcement (\ref{enum:nfr:qos-enforcement}) would therefore depend directly on the response times of these interfaces.
+
+The analytics conveyed through the exposure layer must be grounded on measurements collected by the observation layer described in Section~\ref{chap:proposal:observability}. Passive monitoring would characterize the throughput of the camera's uplink traffic, while active monitoring would measure latency or \acs{RTT}. Both are required to evaluate the network conditions against the throughput and latency thresholds of the monitoring profile (\ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection}). Complementarily, application logs, resource metrics and monitoring dashboards should support the debugging and validation procedures targeted by \ref{enum:nfr:logging}, allowing the observed behavior of the application to be correlated with the requests issued through the exposure layer.
+
+Beyond these general purpose capabilities, alerting road users once a collision is detected requires notification mechanisms not covered by the preceding sections. The testbed should therefore deliver messages to individual \acsp{UE}, e.g. via \acs{SMS} addressed by \acs{MSISDN}, and broadcast messages to all \acsp{UE} of a given class located within a geographical area. These mechanisms would fulfill the notification of pedestrians and vehicles (\ref{enum:fr:notify-pedestrians}, \ref{enum:fr:notify-vehicles}), including their periodic reissue (\ref{enum:fr:notify-periodic}), within the time limit of \ref{enum:nfr:notification-time}. Although motivated by the \acs{PoC}, they are not specific to it and would remain available to other applications. The remaining requirements, namely \ref{enum:fr:detection}, \ref{enum:fr:detection-event} and \ref{enum:nfr:frame-processing}, concern the internal logic of the application and are not mapped to any testbed capability.
+
+
+\begin{table}[htb!]
+% Fraction of \linewidth taken by the Capability column; Requirements fits one functional and one non-functional requirement per line, Use Case is as wide as its header and Realization takes the remaining width
+\newcommand{\capfrac}{0.2890}
+\newlength{\reqwidth}
+\newlength{\nclabelwidth}
+\newlength{\ucwidth}
+\newlength{\realwidth}
+\newcommand{\realization}[1]{\multicolumn{2}{>{\RaggedRight\arraybackslash}p{\dimexpr\realwidth+\arrayrulewidth-2\tabcolsep\relax}|}{\leavevmode#1}}
+% Category rows shaded with the same gray tone of the remaining tables, with \catpad of extra padding above and below the text
+\newlength{\catpad}
+\setlength{\catpad}{3pt}
+\newcommand{\category}[1]{\rowcolor{gray!15}\multicolumn{5}{|l|}{\rule[\dimexpr-\arraystretch\dp\strutbox-\catpad\relax]{0pt}{\dimexpr\arraystretch\ht\strutbox+\arraystretch\dp\strutbox+2\catpad\relax}\textbf{\textit{#1}}}}
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+% Remove booktabs vertical padding so that the vertical rules join the horizontal ones
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+\settowidth{\nclabelwidth}{CAMARA}%
+\settowidth{\ucwidth}{\textbf{Case}}%
+\addtolength{\ucwidth}{4pt}%
+\settowidth{\reqwidth}{FR00, NFR0}%
+\setlength{\realwidth}{\dimexpr\linewidth-\capfrac\linewidth-\reqwidth-2\tabcolsep-\ucwidth-2\tabcolsep-6\arrayrulewidth\relax}%
+\begin{tabular}{|>{\RaggedRight\looseness=-1\arraybackslash}p{\capfrac\linewidth}|l|>{\RaggedRight\arraybackslash}p{\dimexpr\realwidth-\nclabelwidth-4\tabcolsep\relax}|>{\raggedright\arraybackslash}p{\reqwidth}|@{}>{\centering\arraybackslash}m{\ucwidth}@{}|}
+\toprule
+\textbf{Capability} & \multicolumn{2}{l|}{\textbf{Realization}} & \textbf{Require-}\newline\textbf{ments} & \multicolumn{1}{@{}>{\centering\arraybackslash}p{\ucwidth}@{}|}{\textbf{Use}\newline\textbf{Case}} \\
+\midrule
+\category{Resource Lifecycle Management and Service Delivery} \\
+\midrule
+Service design, ordering, provisioning and \acs{LCM} & \realization{\acs{OSS}, accessible via a user interface and \acs{TMF}~Open\acsp{API}} & \ref{enum:fr:slice}, \ref{enum:nfr:packaging} & \checkmark \\
+\hline
+Provisioning of network slices with custom \acs{QoS} & \realization{Delegation to Slice management functions\newline (\acs{NSMF} and \acs{NSSMF})} & \ref{enum:fr:slice}, \ref{enum:nfr:uplink-bitrate} & \checkmark \\
+\hline
+Provisioning and association of \acs{UE} with provisioned slice & \realization{Delegation to Slice management functions\newline (\acs{NSMF} and \acs{NSSMF})} & \ref{enum:fr:slice}, \ref{enum:fr:stream} & \checkmark \\
+\hline
+Orchestration of containerized services & \realization{Delegation to container orchestration platform, e.g. kubernetes using its native \acs{API}} & \ref{enum:nfr:packaging} & \checkmark \\
+\hline
+Orchestration of virtualized \acs{NF} and applications & \realization{Delegation to an \acs{NFVO} via \acs{ETSI} \acs{SOL}005} & \ref{enum:nfr:packaging} & \\
+\midrule
+\category{Network Exposure} \\
+\midrule
+Secure \acs{API} publication, discovery and invocation & \realization{\acs{CAPIF}} & \ref{enum:nfr:secure-exposure} & \checkmark \\
+\hline
+Declaration of application network quality thresholds & CAMARA & Application Profiles~\cite{CAMARAapis} & \ref{enum:fr:qos-profile}, \ref{enum:fr:monitoring-profile} & \checkmark \\
+\hline
+\multirow{2}{=}{Configuring~\acs{QoS} session for a device} & \acs{NEF} & AsSessionWithQoS~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{\ref{enum:fr:qos-request},~\ref{enum:fr:qos-change}, \ref{enum:nfr:qos-enforcement}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Quality on Demand~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Subscription~to network analytics} & \acs{NEF} & AnalyticsExposure~\cite{ETSI_TS_129_522_V18_11_0} & \multirow{2}{=}{\ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Connectivity Insights\newline Subscriptions~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Device location and geofencing notifications} & \acs{NEF} & MonitoringEvent~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{\ref{enum:fr:ue-tracking}} & \multirow{2}{*}{\checkmark} \\
+\cline{2-3}
+& CAMARA & Device Location~\cite{CAMARAapis} & & \\
+\hline
+\multirow{2}{=}{Device reachability and roaming notifications} & \acs{NEF} & MonitoringEvent~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & \multirow{2}{=}{--} & \\
+\cline{2-3}
+& CAMARA & Roaming Status,\newline Reachability Status~\cite{CAMARAapis} & & \\
+\hline
+Traffic steering and other \acs{3GPP} procedures & \acs{NEF} & TrafficInfluence, PfdManagement, among others~\cite{ETSI_TS_129_522_V18_11_0,ETSI_TS_129_122_V18_8_0} & -- & \\
+\midrule
+\category{Network Observability} \\
+\midrule
+Passive traffic monitoring & \realization{Autonomous collection of network metrics, e.g. session throughput (full set at Table~\ref{tab:proposal:observability:metrics})} & \ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection} & \checkmark \\
+\hline
+Active monitoring & \realization{Active prober process, collecting metrics such as \acs{RTT}, Packet Loss and \acs{RTT} jitter} & \ref{enum:fr:monitoring}, \ref{enum:nfr:degradation-detection} & \checkmark \\
+\hline
+Monitoring Visualization & \realization{Dashboard visualization of collected \acsp{KPI}} & \ref{enum:nfr:logging} & \checkmark \\
+\midrule
+\category{Notification} \\
+\midrule
+Delivery of \acs{SMS} notifications to individual \acsp{UE} & \realization{Application-facing \acs{SMS} submission \acs{API}} & \ref{enum:fr:notify-pedestrians},~\ref{enum:fr:notify-periodic}, \ref{enum:nfr:notification-time} & \checkmark \\
+\hline
+Geographic message broadcast to vehicles & \realization{Location-based \acs{V2X} messaging service} & \ref{enum:fr:notify-vehicles},~\ref{enum:fr:notify-periodic}, \ref{enum:nfr:notification-time} & \checkmark \\
+\bottomrule
+\end{tabular}
+\caption{Summary of the proposed testbed capabilities}
+\label{tab:proposal:capabilities}
+\end{table}
+
