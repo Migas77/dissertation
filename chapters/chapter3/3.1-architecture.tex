@@ -1,20 +1,19 @@
 \section{Architecture}
 \label{chap:proposal:architecture}
 
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/drawio/proposed_architecture.pdf}
+    \caption{Proposed Testbed Architecture}
+    \label{fig:proposal:architecture}
+\end{figure}
+
 \fix{HAVEN'T CHANGED THIS PART YET}
 As delineated in Section \ref{chap:introduction:objectives}, one of the dissertation's most important objectives is the secure exposure of network capabilities, allowing access to the funcionalities provided by the network in a controlled manner. The core network function responsible for the network capability exposure of a \acs{5G} system is the \acs{NEF}, as highlighted in Section \ref{sec:sba:nef}. Consequently, defining this component establishes the foundation for specifying the remainder of the network architecture. Due to the wide variety of \acs{5GC} implementations, an analysis of the various \acs{NEF} implementations was conducted in Section \ref{exposure:NEFimplementations}. Based on this analysis, the NEFSim~\cite{NEFSimMediaNetLabGithub} was selected as the most suitable choice for the \acs{NEF} implementation, due to its suite of supported northbound \acsp{API} and its integration capabilities with \acs{CAPIF} implementations (i.e. OpenCAPIF), compared to its alternatives.
 
 In order to further simplify the access to the complex set of network services offered by the NEFSim, CAMARA \acsp{API} are adopted, providing an abstraction layer that facilitates the integration of network capabilities into applications. This way, the CAMARA initative supports the development of network applications that explore the wide variety of use cases enabled through its set of user-friendly \acsp{API}, as described in Section \ref{sec:iniatives:CAMARA}.
 
 Hence, the CAMARA and NEFSim components handle the exposure of network capabilities to third parties. However, there is still a lack of a standardized mechanism for the secure discovery, exposure, and consumption of these northbound \acsp{API}, which is achieved through the introduction of \acs{CAPIF}. More specifically, OpenCAPIF~\cite{OpenCAPIF}, an open source project by the \acs{ETSI} \acs{SDG}, was selected for the implementation of the \acs{CAPIF} framework, due to its compliance with \acs{3GPP} standards and active support. Thus, OpenCAPIF will be utilized to securely expose CAMARA \acsp{API}, as well as \acs{NEF} \acsp{API}, to allow access to all NEF functionalities not supported by the CAMARA use cases or that have previously been used for implementation within \acs{ITAv}. Figure \ref{fig:proposal:architecture} illustrates the envisioned system architecture. It is adapted from a reference architecture by the SoftNet \acs{WG}, within the context of Smart Networks and Services Joint Undertaking, which establishes how a \acs{NaaS} platform enables third-party access to operator networks~\cite{SoftnetWhitePaperBaseArchitecture}. The baseline architecture was altered to the context of this dissertation, as well as to cater to functional specificities of the \acs{ITAv} testbed.
-
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=1\linewidth]{figs/drawio/ThesisDiagramGeneric.png}
-    \caption{Testbed Architecture}
-    \label{fig:proposal:architecture}
-\end{figure}
 
 \fix{Na arquitetura falta a licação do OSS ao slice manager}
 
