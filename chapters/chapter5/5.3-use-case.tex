@@ -1,19 +1,106 @@
 \section{Multi-Vertical Use Case in \acs{E2E} Adaptive QoS Scenario}
 \label{chap:results:use-case}
 
-The experiments presented in Section~\ref{chap:results:exposure} evaluated the performance and interaction model between the network application and the \acs{5G} network exposure interfaces provided by the testbed. However, these experiments focused on the performance of the exposure interfaces themselves, without assessing their impact on the underlying network or how the resulting network conditions affected the application components.
+The experiments presented in Section~\ref{chap:results:exposure} evaluated the interaction model between the network application and the \acs{5G} network exposure interfaces provided by the testbed. However, these experiments focused on the performance of the exposure interfaces themselves, without assessing their impact on the underlying network or on other services sharing its resources.
 
-
-The requirements on slice based on specification X. However, in practice the streaming traffic resulted on an average of . Which was therefore set as the baseline for the streaming requiremenst and analytics window
+This section addresses this gap by evaluating the vertical network application adaptive \acs{QoS} scenario introduced in Section~\ref{chap:impl:use-case}. The experiment assesses how the \acs{NEF} and CAMARA \acsp{API} implemented in this dissertation support adaptive \acs{QoS} management in the live \acs{5G} network at 5GAIner. More specifically, it measures the time required to enforce a new \acs{QoS} profile on the network. It then uses the developed passive network monitoring mechanisms to assess whether the resulting network conditions match the characteristics defined for the network slice and, subsequently, those of the newly enforced \acs{QoS} profile. Finally, it evaluates the impact of this change on the \acs{QoE} of other users sharing the network, using the \acs{FPS} of a video streaming application.
 
 \subsection{Experimental Setup}
 \label{chap:results:use-case:setup}
 
+Given the mission-critical nature of \acs{PPDR} communications, sufficient network resources must be available to support their services whenever an emergency occurs. However, \acs{PPDR} events are sporadic and difficult to predict, making the permanent reservation of dedicated network resources costly and inefficient, due to long periods of low demand. For this reason, in real deployments, \acs{PPDR} and civilian traffic may end up sharing the same pool of network resources, even when served by separate network slices~\cite{CCAMPPDRDynamicResourceAllocation}.
+
+Nevertheless, network applications, such as the one developed in this dissertation, can interact with the \acs{5G} network through the \acs{NEF} and CAMARA interfaces to dynamically request additional bandwidth for their streams whenever a \acs{PPDR} event occurs (e.g. car crash detected) or whenever the throughput of the inference video stream drops below a predefined threshold, as reported by the analytics capabilities of those same interfaces. Conversely, the application could request that the bandwidth available to civilian \acsp{UE} be temporarily restricted to prioritize mission-critical communications and ensure sufficient network resources for emergency services.
+
+To reproduce this scenario, a streaming pipeline was developed to generate traffic and consume \acs{5G} network resources, as would be the case with civilian communications in real-world deployments. For this, a computer linked to a modem connected to the \acs{5G} network was used as the civilian \acs{UE}, streaming a video at 4K (3840x2160) 30 \acs{FPS} to put load on the network. On the \acs{UE}, a MediaMTX\footnote{https://github.com/bluenviron/mediamtx} streaming server was deployed as a Docker container, to which FFmpeg\footnote{https://ffmpeg.org} published the H.265 video stream. The stream was then consumed over \acs{RTSP}, using \acs{TCP} as transport, by another \acs{VM}, running an Ubuntu 22.04 \acs{VM} with 4 vCPUs, 8 GB \acs{RAM}, and 64 GB disk. To ensure that the stream traversed the \acs{5G} network, a static route was configured on the \acs{UE} to direct all traffic destined for the OpenStack \acs{VM} subnet through the modem interface.
+
+To establish the network conditions under which the civilian streaming scenario will be evaluated, the following connectivity requirements were defined (Table~\ref{tab:results:use-case:qos}), each aimed at simulating a different \acs{QoS} environment.
+
+\begin{table}[htbp]
+    \centering
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}m{\widthof{20 Mbps}}|
+        >{\RaggedRight\arraybackslash}m{\widthof{\textbf{\acs{QoS} Downgrade}}}|}
+        \hline
+        \textbf{Network Connectivity \acsp{SLA}} & \textbf{Slice (NEST)} & \textbf{\acs{QoS} Downgrade\newline Profile} \\
+        \hline
+        Latency from (last) \acs{UPF} to Application Server & 20 ms & \textendash \\
+        \hline
+        Priority Level & 80 & \textendash \\
+        \hline
+        "Guaranteed" (minimum) downlink throughput per \acs{UE} & 15 Mbps & \textendash \\
+        \hline
+        "Guaranteed" (minimum) uplink throughput per \acs{UE} & 15 Mbps & \textendash \\
+        \hline
+        Maximum Uplink Throughput per \acs{UE} & 20 Mbps & 4 Mbps \\
+        \hline
+    \end{tabularx}
+    \caption{Network \acs{SLA} requirements for the civilian network slice and the downgrade \acs{QoS} profile}
+    \label{tab:results:use-case:qos}
+\end{table}
+
+In particular, a dedicated network slice was designed to support the delivery of high-resolution content, with moderate latency. The throughput requirements were derived from TR 26.925~\cite{TR26925}, which highlights typical traffic characteristics of media services on \acs{3GPP} networks. According to this report, 4K UHD video streams typically require between 5 and 25~Mbps. It also reports real use cases of 4K video encoded with H.265 (HEVC) at 30~\acs{FPS} requiring between 10-18~Mbps on average, with caps between 15 and 25~Mbps. Moreover, given the advertised average bitrate for the video stream file is around 13.12~Mbps, the throughput per \acs{UE} was bounded between 15 and 20~Mbps. Therefore, the slice should provide sufficient uplink capacity to support the stream originating at the \acs{UE}.
+
+Although each network slice is designed to meet specific latency and throughput requirements, it should be emphasized that the \acs{5G} network in the 5GAIner infrastructure operates on a best-effort basis. This means that there are no strict resource guarantees within a network slice and, that the performance metrics observed in \ac{UE} traffic flows may fall below or exceed the limits of the specified \acsp{SLA}. This characteristic has also shaped the design of the proposed test case. In particular, under contention, a \acs{QoS} upgrade does not guarantee improved network conditions for the affected \acs{UE}. By contrast, a \acs{QoS} downgrade, such as the one presented in Table~\ref{tab:results:use-case:qos}, imposes a hard cap on the maximum uplink throughput of the \acs{UE} and is enforced by the network regardless of competing traffic. For this reason, the experiments focus on downgrading the \acs{QoS} profile of the civilian \acs{UE} to 4~Mbps, rather than upgrading that of the \acs{PPDR} \acs{UE}. This approach provides clear and measurable evidence of whether, and when, the requested \acs{QoS} profile is enforced by the network.
+
+Two experiments were conducted to evaluate the adaptive \acs{QoS} use case, both using the same baseline environment described in the previous sections. This environment comprises the commercial-grade standalone \acs{5G} network deployed at \acs{ITAv} and its proprietary Slice Manager. The complete experimental setup is illustrated in Figure~\ref{fig:results:use-case:setup}. The exposure interfaces and the network application are deployed on the OpenSlice \acs{VM} within the K3s cluster, whereas the \acs{UE}, i.e. a computer connected to a \acs{5G} modem, transmits uplink traffic to a separate \acs{VM}.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/placeholder.png}
+    \caption{Experimental setup for the adaptive \acs{QoS} experiments}
+    \label{fig:results:use-case:setup}
+\end{figure}
+
+In the first experiment, this traffic is generated with iperf3\footnote{\url{https://iperf.fr}}, which sends constant \acs{UDP} traffic from the \acs{UE} to an iperf3 server hosted on that \acs{VM}. In the second experiment, the \acs{UE} instead streams the 4K video at 30~\acs{FPS} to the same \acs{VM}. Moreover, throughout both experiments, the testbed passive monitoring mechanisms, encompassing the packet and bytes exporter and the Prometheus \acs{TSDB} collect per-\acs{UE}/slice uplink and downlink throughput metrics. In the second experiment, these metrics are complemented by the \acs{RTT} measurements of the active \acs{ICMP} prober, also deployed on the K3s cluster.
+
 \subsection{Procedure}
 \label{chap:results:use-case:procedure}
+
+Before both experiments, the network slice, the civilian \acs{UE}, the exposure interfaces and the network application were provisioned through the \acs{OSS}. All of these services were included in the same service order, following the service delivery process implemented in Section~\ref{chap:results:delivery}. Within this order, the \acs{CFS} characteristics pertaining to the network slice were configured according to the \acs{NEST} attributes listed in Table~\ref{tab:results:use-case:qos}. Similarly, the \acs{IMSI} of the SIM card inserted in the modem was also supplied, as well as the maximum uplink throughput for the \acs{UE} association, also with a value of 20~Mbps. The slice identifier is automatically inherited from the network slice service in the same order.
+
+In addition, the specified \acs{QoS} requirements were supplied to the \acs{NEF} through the same order, as a static configuration file defining the \acs{QoS} profiles that can be requested through the \textit{AsSessionWithQoS} \acs{API}. These include a default profile, with 20~Mbps maximum bitrate matching the maximum uplink throughput per \acs{UE} defined in the \acs{NEST}, and the downgrade profile, limited to a max of 4~Mbps. The same configuration enabled the Huawei driver, described in Section~\ref{chap:impl:exposure:nef}, allowing the requested \acs{QoS} to be applied to the \acs{5G} network through the Slice Manager \acs{API}. Furthermore, the AnalyticsExposure \acs{API} was configured to query Prometheus as described in Section~\ref{chap:impl:exposure:nef}, enabling it to retrieve analytics from metrics collected in the actual network, through the bytes exporter. Together, these configurations allow \acs{NEF}Sim to operate in conjunction with a real network rather than in its default simulation mode, which represents one of the main contributions of this dissertation. In this setting, the \acs{NEF}Sim can enforce the requested \acs{QoS} profiles on the network and monitor its performance through measurements collected from the live \acs{5G} environment.
+
+As described in Section~\ref{chap:impl:resource_lifecycle}, the resulting slice and \acs{UE} resources are fulfilled by the Slicing Generic Controller, which consumes the Slice Manager \acs{API} to instantiate the slice across the \acs{RAN} and \acs{CN} and to associate the \acs{UE} with it. Once the association was completed, the modem attached to the network slice obtained an \acs{IP} address attributed by the \acs{5G} network. Following provisioning, the \acs{NEF} database, specifically its \acs{UE} repository, was populated using a dedicated script with the modem's \acs{IMSI} and assigned \acs{IP} address. These identifiers matched those of the \acs{UE} provisioned in the network, ensuring that the requests received by the \acs{NEF} refer to the \acs{UE} attached to the slice.
+
+With the environment provisioned, the two experiments were executed. The first experiment focused exclusively on the network side, evaluating whether network \acs{QoS} parameters could be modified on demand before investigating the impact of such modifications on application behaviour. Accordingly, the experiment used only the provisioned slice and \acs{UE}, while the exposure interfaces and the network application remained out of scope. In this test case, the \acs{UE} transmitted constant \acs{UDP} traffic to an iperf3 server for 120s at a rate of 15~Mbps, matching to the minimum uplink throughput per \acs{UE} defined in the \acs{NEST}. The datagram size was set to 1400~bytes, providing a relatively large payload while remaining below the threshold for IP fragmentation. The throughput received by the streaming receiver was recorded every second, as part of the iperf3 command. The slice and \acs{UE} were also monitored at one-second intervals by the testbed passive monitoring services, as this is the Prometheus scrape interval for the exporter.
+
+Approximately halfway through the transmission, a 4~Mbps uplink and downlink \acs{AMBR} was requested for the \acs{IMSI} of the modem directly to the Slice Manager \acs{API}, using the same underlying request that would be issued by the \acs{NEF} in the \textit{AsSessionWithQoS} implementation, as described in Section~\ref{chap:impl:exposure:nef:AsSessionWithQoS}. The request timestamp was recorded, and the operation identifier returned by the Slice Manager was used to retrieve the operation’s final state and determine the time required to apply the new \acs{QoS}. By comparing the measured throughput before and after this point, the experiment can evaluate whether the requested limit was enforced and how quickly the network responded to the change.
+
+The second experiment extends the first approach to the application level, assessing whether, beyond altering the throughput, the resulting deprecated network conditions can also be observed in the behavior of the application, namely of the streaming session. In this experiment, the \acs{UE} streamed the 4K video at 30~\acs{FPS} to the destination \acs{VM}, which recorded the number of video frames received per second. In parallel, the network application subscribed to the AnalyticsExposure \acs{API} to monitor the throughput of the \acs{PPDR} camera stream. Throughput reports were received every 5s and evaluated against the 15~Mbps minimum requirement. The results presented in this section therefore focus exclusively on the \acs{NEF} interaction model, although the feedback loop was validated for all interaction models.
+
+During these tests, the author was constrained by the availability of a single \acs{UE}, i.e., a \acs{5G} modem. This limitation required choosing between two mutually exclusive approaches. Either the scenario would consider only (i) the \acs{PPDR} video stream, imposing a predefined throughput cap from the start and interacting with the \acs{NEF} to request a \acs{QoS} upgrade to 15~Mbps to support the stream and improve its quality, or (ii) consider the civilian video stream, i.e. interacting with the \acs{NEF} to request a \acs{QoS} downgrade, its negative impact on the stream's performance. Both approaches, however, serve the same ultimate purpose, i.e. to demonstrate and validate the testbed network exposure interfaces can be used to dynamically prioritize \acs{PPDR} traffic over civilian traffic when network resources are limited. The latter approach was selected because it better aligns with the network application's value proposition. Rather than imposing a fixed throughput limit in advance, the network application monitors network conditions through the exposed interfaces and, once a degraded-throughput or emergency situation is detected, reduces the bandwidth consumption of non-critical traffic through adaptive \acs{QoS} degradation.
+
+When a violation was detected, the application created a subscription through the AsSessionWithQoS \acs{API}, requesting the downgrade profile for the civilian \acs{UE}. The \acs{NEF} translated this request into the corresponding Slice Manager \acs{API} call and monitored the resulting operation until completion.
+
+In this experiment, the \acs{PPDR} camera was not actively streaming. Consequently, the AnalyticsExposure \acs{API} reported a throughput of 0~bps for the camera, which the application treats as a requirements violation. This highlights the importance of jointly considering and correlating the state of the network, i.e. throughput reported by the \textit{AnalyticsExposure} \acs{API}, and the state of the stream, i.e. the stream current \acs{FPS}. This approach is outside the scope of the current solution, as the \acs{ML} crash detection was offloaded to a separate service, namely Roboflow. Nonetheless, for the purpose of this experiment, this behaviour was advantageous, as it triggered a scenario in which the \acs{PPDR} requirements were not being met and deterministically triggered the \acs{QoS} adjustment loop under evaluation.
+
+The timestamps at which the application issued the request, the \acs{NEF} forwarded it to the Slice Manager, and the Slice Manager completed the operation were extracted from the application and \acs{NEF} logs. These events were correlated with the frame reception rate to assess the impact of the downgrade on the video stream. The frame rate was expected to remain close to 30~\acs{FPS} before the downgrade and decrease once the new \acs{QoS} configuration was enforced. Meanwhile, the testbed throughput dashboards were used to verify the corresponding changes at the network level, while the \acs{RTT} metrics measured by the active prober provided an additional indication of the slice's condition throughout the experiment.
+
+The clocks of the OpenSlice \acs{VM}, hosting the K3s cluster with the exposure services and the network application, and of the stream destination \acs{VM} were synchronized through \acs{NTP} (server \texttt{ntp.ubuntu.com}), both reporting offsets below 4~ms. All timestamps and durations were therefore computed exclusively from these two hosts, with the Slice Manager operations accounted for through the durations it computes internally and reports via its \acs{API}.
 
 \subsection{Results and Discussion}
 \label{chap:results:use-case:discussion}
 
+The results are presented according to the three aspects defined at the beginning of this section: the time required to enforce a new \acs{QoS} profile, the conformity of the observed network conditions with the network slice and the enforced profile, and the impact of the change on the \acs{QoE} of the civilian user, i.e. the stream \acs{FPS}.
+
+The first experiment evaluates the first two aspects at the network level, establishing a baseline for the behavior of the Slice Manager and the \acs{5G} network. As previously established, the network slice and \acs{UE} are configured with a minimum uplink throughput of 15~Mbps and a maximum of 20~Mbps. The experiment then assesses whether the network slice and \acs{UE} association can sustain the iperf load under each \acs{QoS} profile. Figure~\ref{fig:results:use-case:test1:iperf} presents the offered (client) and received (server) throughput over time throughout this experiment.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/results/throughput_test1_iperf.pdf}
+    \caption{Throughput received from the \acs{UE} before and after \acs{QoS} update}
+    \label{fig:results:use-case:test1:iperf}
+\end{figure}
+
+Before the \acs{QoS} update, the received throughput matched the offered load of 15~Mbps, which corresponds to the guaranteed minimum uplink rate per \acs{UE} specified for the network slice. No datagrams were lost, and jitter remained close to 1~ms. The update was requested at 13:22:03.454~UTC, and the interval in which it was issued already registered a reduced throughput of 10.8~Mbps, with 27\% of the datagrams lost. From the following one-second interval onwards, the received throughput remained between 3.8 and 4.0~Mbps until the end of the transmission, which matches the requested 4~Mbps limit. The small difference to the nominal limit is consistent with iperf3 reporting the \acs{UDP} payload rate, whereas the \acs{AMBR} is enforced on the complete \acs{IP} packets. Since the \acs{UE} kept offering 15~Mbps, approximately 74\% of the datagrams were dropped after the update, and the jitter increased from approximately 1~ms to values between 3 and 5~ms. Table~\ref{tab:results:use-case:iperf} summarizes these metrics before and after the update, computed from the iperf reports.
+
+The second experiment builds on this baseline by incorporating the exposure interfaces and the network application into the request path, and evaluating the impact of the restriction on the video stream.
+
+The requirements on slice based on specification X. However, in practice the streaming traffic resulted on an average of . Which was therefore set as the baseline for the streaming requiremenst and analytics window
+
 \subsection{Conclusions}
 \label{chap:results:use-case:conclusion}
+
