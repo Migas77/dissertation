@@ -86,21 +86,94 @@ The clocks of the OpenSlice \acs{VM}, hosting the K3s cluster with the exposure 
 
 The results are presented according to the three aspects defined at the beginning of this section: the time required to enforce a new \acs{QoS} profile, the conformity of the observed network conditions with the network slice and the enforced profile, and the impact of the change on the \acs{QoE} of the civilian user, i.e. the stream \acs{FPS}.
 
-The first experiment evaluates the first two aspects at the network level, establishing a baseline for the behavior of the Slice Manager and the \acs{5G} network. As previously established, the network slice and \acs{UE} are configured with a minimum uplink throughput of 15~Mbps and a maximum of 20~Mbps. The experiment then assesses whether the network slice and \acs{UE} association can sustain the iperf load under each \acs{QoS} profile. Figure~\ref{fig:results:use-case:test1:iperf} presents the offered (client) and received (server) throughput over time throughout this experiment.
+The first experiment evaluates the first two aspects at the network level, establishing a baseline for the behavior of the Slice Manager and the \acs{5G} network. As previously established, the network slice and \acs{UE} are configured with a minimum uplink throughput of 15~Mbps and a maximum of 20~Mbps. The experiment then assesses whether the network slice and \acs{UE} association can sustain the iperf load under each \acs{QoS} profile. Figure~\ref{fig:results:use-case:test1:iperf} presents the offered~(client) and received~(server) throughput over time throughout this experiment. Table~\ref{tab:results:use-case:test1:iperf} complements this figure by summarizing the bitrate, datagram loss, and jitter measured with the iperf tool before and after the \acs{QoS} update.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\linewidth]{figs/results/throughput_test1_iperf.pdf}
+    \includegraphics[width=1\linewidth]{figs/results/test1_throughput_iperf.pdf}
     \caption{Throughput received from the \acs{UE} before and after \acs{QoS} update}
     \label{fig:results:use-case:test1:iperf}
 \end{figure}
 
-Before the \acs{QoS} update, the received throughput matched the offered load of 15~Mbps, which corresponds to the guaranteed minimum uplink rate per \acs{UE} specified for the network slice. No datagrams were lost, and jitter remained close to 1~ms. The update was requested at 13:22:03.454~UTC, and the interval in which it was issued already registered a reduced throughput of 10.8~Mbps, with 27\% of the datagrams lost. From the following one-second interval onwards, the received throughput remained between 3.8 and 4.0~Mbps until the end of the transmission, which matches the requested 4~Mbps limit. The small difference to the nominal limit is consistent with iperf3 reporting the \acs{UDP} payload rate, whereas the \acs{AMBR} is enforced on the complete \acs{IP} packets. Since the \acs{UE} kept offering 15~Mbps, approximately 74\% of the datagrams were dropped after the update, and the jitter increased from approximately 1~ms to values between 3 and 5~ms. Table~\ref{tab:results:use-case:iperf} summarizes these metrics before and after the update, computed from the iperf reports.
+Before the \acs{QoS} update, the received throughput closely matched the offered load of 15~Mbps, demonstrating that the network could sustain the guaranteed minimum uplink rate per \acs{UE} configured for the network slice. Individual measurements deviated only slightly from this value, ranging between 14.9 and 15.2~Mbps, with an average throughput equal to the offered load over the entire interval. During this period, no datagrams were lost, and jitter remained close to 1~ms. The \acs{QoS} update was requested at 13:22:03.454, approximately 60~s into the experiment. The first report following its enforcement showed a reduced throughput of 10.8~Mbps, with 27\% of datagrams lost. Since each report is obtained at one-second intervals, this interval still includes traffic received before the update. From then onwards, the received throughput remained between 3.8 and 4.0~Mbps until the end of the transmission, closely matching the requested 4~Mbps limit. The small difference to the nominal limit is consistent with iperf reporting the \acs{UDP} payload rate, whereas the \acs{AMBR} limit is enforced on the complete \acs{IP} packets. Since the \acs{UE} continued generating traffic at an offered rate of 15~Mbps, approximately 74\% of datagrams were dropped by the \acs{5G} network following the update, with jitter increasing to values between 3 and 5~ms.
 
-The second experiment builds on this baseline by incorporating the exposure interfaces and the network application into the request path, and evaluating the impact of the restriction on the video stream.
+\begin{table}[htbp]
+    \centering
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}X|}
+        \hline
+        \textbf{Phase} & \textbf{Bitrate (Mbps)} & \textbf{Datagram Loss (\%)} & \textbf{Jitter (ms)} \\
+        \hline
+        Before \acs{QoS} update & $15.00 \pm 0.05$ & $0.00 \pm 0.00$ & $0.94 \pm 0.10$ \\
+        \hline
+        After \acs{QoS} update & $3.90 \pm 0.05$ & $74.00 \pm 0.27$ & $4.09 \pm 0.73$ \\
+        \hline
+    \end{tabularx}
+    \caption{Throughput, datagram loss, \hspace{-0.1pt}and jitter \hspace{-0.1pt}measured \hspace{-0.1pt}by \hspace{-0.1pt}iperf3 \hspace{-0.1pt}server \hspace{-0.1pt}before \hspace{-0.1pt}and \hspace{-0.1pt}after \acs{QoS} update}
+    \label{tab:results:use-case:test1:iperf}
+\end{table}
 
-The requirements on slice based on specification X. However, in practice the streaming traffic resulted on an average of . Which was therefore set as the baseline for the streaming requiremenst and analytics window
+The \acs{QoS} was enforced 67~ms after the request, with the \acs{CN} taking 54~ms to apply the updated \acs{AMBR} to the \acs{PDU} session. The same transition can also be observed from the metrics collected by the testbed's passive monitoring exporter. Figure~\ref{fig:results:use-case:test1:grafana} shows the Grafana throughput dashboard during the first experiment.
+
+The uplink chart for the \acs{UE} closely resembles the traffic pattern observed in Figure~\ref{fig:results:use-case:test1:iperf}. This essentially validates the passive monitoring mechanism implemented in the testbed, confirming that it accurately captures actual network conditions without interfering with ongoing traffic. Nonetheless, some other details are important to point out.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/results/test1_throughput_grafana.png}
+    \caption{Grafana Slice and per-\acs{UE} throughput dashboard during the first experiment}
+    \label{fig:results:use-case:test1:grafana}
+\end{figure}
+
+The dashboard computes the throughput over a 2~s rate window, effectively providing an instantaneous rate between the two most recent byte samples scraped at 1~s intervals. In line with what was observed previously, the initial throughput remained at approximately 15~Mbps, before dropping to approximately 4~Mbps after the update. The mean values reported in each \acs{QoS} phase, of 15.3 and 4~Mbps respectively, are slightly higher than those reported by iperf, as the exporter counts the bytes of the complete Ethernet frame, including packet headers.
+
+Additionally, the passive monitoring pipeline captured downlink traffic from the two \acs{VM} involved in the experiment: the iperf3 server (10.255.28.183) and the OpenSlice and K3s cluster (10.255.28.207). Two \acs{SSH} sessions were active on the \acs{UE} computer, but their traffic was negligible In addition, the previous Grafana dashboard hosted on the OpenSlice~\acs{VM} was continuously monitored in a browser, refreshing every 10~s. This resulted in the dashboards exhibiting peaks of downlink traffic from the OpenSlice \acs{VM} of approximately 420~kbps at 10~s intervals, corresponding to the dashboard refreshes. Following the transition, the periodic peaks were replaced by smaller, irregular bursts. This behaviour is consistent with uplink saturation, as browser requests and \acs{TCP} acknowledgements competed with the 15~Mbps offered by iperf3 for the available 4~Mbps, delaying dashboard responses and spreading the resulting downlink traffic over time. Once the transmission ended, the uplink was no longer saturated and the last refresh registered a peak of approximately 420~kbps again. This analysis also shows the usefulness of the per-\acs{IP} granularity of the monitoring exporter, allowing experimenters to identify unintended traffic that could otherwise bias the results of a test.
+
+The results of the first experiment demonstrate that the \acs{QoS} of a \acs{UE} can be modified on demand, producing a measurable effect on the network. They also confirm that the network conditions observed by the testbed reflect the requested and enforced \acs{QoS} adjustments, confirming that the network can be both dynamically configured and monitored.
+
+The second experiment will now address how the developed network interfaces can be used to change network conditions and affect the behavior of user applications. In this experiment, instead of interacting directly with the Slice Manager, it is the \acs{PPDR} network application that, in response to an analytics threshold breach, requests the \acs{QoS} change through the \acs{NEF}. The application and \acs{NEF} logs allow the sequence of interactions between the network application, the \acs{NEF} and the Slice Manager to be reconstructed. The network application created the \textit{AnalyticsExposure} subscription for the \acs{PPDR} camera at 14:46:06.503, in a request that took 64~ms. The first notification was received at 14:46:06.633 reporting 0~bps for the camera, indicating a violation of the defined performance threshold. Following this, the application requested the downgrade profile for the civilian \acs{UE} at 14:46:06.672, and the \acs{NEF} created the corresponding \textit{AsSessionWithQoS} subscription in 28~ms. The \acs{NEF} forwarded the request to the Slice Manager at 14:46:06.774, which accepted it in 48~ms and completed the operation in 129~ms, of which 91~ms in the \acs{CN}. The new \acs{QoS} profile was therefore enforced 259~ms after the request of the network application, and 298~ms after the violation was detected. This value is well within the 1~s defined in requirement~\ref{enum:nfr:qos-enforcement}. Compared with the first experiment, the exposure layer added approximately 100~ms before the request reached the Slice Manager, while the operation in the Slice Manager itself took 62~ms longer.
+
+Figure~\ref{fig:results:use-case:test2:fps} presents the \acs{FPS} for the aforementioned \acs{UE}'s streaming application, representing non-critical traffic that should be restricted in emergency situations with the designed \acs{QoS} downgrade profile.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/results/test2_fps.pdf}
+    \caption{Civilian \acs{UE} stream \acs{FPS} before and after \acs{QoS} change requested by the network application}
+    \label{fig:results:use-case:test2:fps}
+\end{figure}
+
+In the first half of the chart, the consumer frame rate remains relatively stable at about 30~fps, matching the target frame rate for the initial \acs{QoS} requirements, with occasional fluctuations between 23 and 37~\acs{FPS}. These variations may arise from several factors. Nonetheless, they predominantly occur in consecutive samples, which is consistent with the bursty delivery of frames over \acs{RTSP} and \acs{TCP} rather than with actual frame loss. Immediately after the \acs{QoS} change, the frame rate dropped to 8~\acs{FPS} and subsequently stabilized between 9 and 12~\acs{FPS}, with an average close to 11~\acs{FPS}, until the end of the stream. The restriction therefore noticeably degraded the \acs{QoE} of the civilian user without interrupting the service, demonstrating the intended trade-off between civilian and \acs{PPDR} communications, sharing the same underlying resources.
+
+Once the \acs{QoS} adjustment was enforced on the network, its effect on the civilian \acs{UE} was expected to mirror the one observed in the first experiment, now under real application traffic, i.e. of the stream. Figure~\ref{fig:results:use-case:test2:grafana} confirms this behavior at the network level. The per-destination panels attribute the majority of the uplink traffic to the of the civilian \acs{UE} to the streaming receiver (10.255.28.183). The traffic curve follows the same trend observed in the first experiment.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/results/test2_grafana.png}
+    \caption{Slice and per-\acs{UE} throughput dashboard during the second experiment}
+    \label{fig:results:use-case:test2:grafana}
+\end{figure}
+
+Apart from an initial peak of 24.9~Mbps when the stream started, the uplink throughput of the civilian \acs{UE} fluctuated periodically (7~s video looping) around 14 to 15~Mbps, in line with the average bitrate of the video file. After the \acs{QoS} change, the uplink throughput decreased to approximately 4~Mbps, returning to zero when the stream stopped. The downlink direction is considerably lower, corresponding to mainly control and feedback data. The same effect is also visible in the downlink traffic, which decreased once the \acs{QoS} was restricted.
+
+Lastly, active monitoring metrics provide an additional perspective on the impact of the civilian traffic on the slice. The \acs{ICMP} prober ordered for the slice runs as a pod on the K3s cluster hosted on the OpenSlice \acs{VM} and periodically sends echo requests to the civilian \acs{UE}. As specified in the service order, the prober sends a burst of six echo requests each 5 seconds, each with a 56~byte payload and a timeout of 800~ms. Since these probes traverse the same \acs{5G} network as the video stream, the measured \acs{RTT} provides an indication of the network conditions experienced by the civilian traffic. Figure~\ref{fig:results:use-case:test2:prober} presents the resulting prober dashboard.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/results/test2_prober.png}
+    \caption{\acs{ICMP} prober dashboard during the second experiment}
+    \label{fig:results:use-case:test2:prober}
+\end{figure}
+
+As shown in Figure~\ref{fig:results:use-case:test2:prober}, the \acs{RTT} towards the civilian \acs{UE} was considerably higher while the stream was running, with a mean \acs{RTT} varying between 20 and 29~ms. Packet loss on the echo requests was also registered only while the stream was running, reaching a maximum of 6.25\%. Once the stream was stopped, the mean \acs{RTT} stabilized at approximately 11~ms. 
+
+The latency observed under load thus exceeded the 20~ms defined in the \acs{NEST}. However, from the current data it's not possible to assume that is due to the best-effort behavior of the network. However, the \acs{RTT} did not decrease noticeably after the \acs{QoS} downgrade, but only after the stream was stopped. For instance, one possible explanation would be that the \acs{UE} itself delayed the echo replies while simultaneously transmitting the video stream. This would also explain why the \acs{RTT} did not decrease after the \acs{QoS} downgrade, but only after the stream was stopped. Nevertheless, these results show that civilian traffic affects not only the throughput but also the latency experienced on the shared resources, which reinforces the need to restrict it when \acs{PPDR} communications must be prioritized.
 
 \subsection{Conclusions}
 \label{chap:results:use-case:conclusion}
 
+The experiments presented in this section demonstrate that the exposure interfaces developed in this dissertation enable on-demand adaptation of \acs{QoS} sessions in a live \acs{5G} network, with measurable effects on both network performance and the applications using it. 
+
+For network applications such as the one developed in this dissertation, the results show that the network is no longer a static resource, but rather a dynamic infrastructure that adapts to application requirements through standardized interfaces, using the \acs{NEF} as the entrypoint to \acs{5G} network programmability. This enables civilian users to benefit from the network's full capacity under normal operating conditions, while ensuring that \acs{PPDR} communications receive additional resources whenever a \acs{PPDR} event occurs or their normal operation~is~impaired.
