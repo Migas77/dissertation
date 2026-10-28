@@ -29,9 +29,9 @@ In particular, the Network slice specification should be derived from the \acs{G
 
 \bulletparagraph{\textit{User Equipment}}
 
-The User Equipment service should transparently register a \acs{UE} with the \acs{5G} network and attach it to a provisioned network slice. The design and management of \acs{5G} \acs{UE} are defined across several \acs{3GPP} specifications, namely 3GPP TS 23.501~\cite{}, 3GPP TS 24.527~\cite{} and 3GPP TS 23.503~\cite{}. However, in contrast to network slices, no common template is standardized or recommended for the definition of a \acs{UE}. Because of this, this dissertation proposes a minimal blueprint for modeling \acs{5G} \acsp{UE}, which is presented in Table~\ref{tab:proposal:delivery:ue-blueprint}. \later{citations and IMSI identifier}
+The User Equipment service should transparently register a \acs{UE} with the \acs{5G} network and attach it to a provisioned network slice. The design and management of \acs{5G} \acs{UE} are defined across several \acs{3GPP} specifications, namely \acs{3GPP} TS 23.501~\cite{ETSI_TS_123_501_V16_9_0}, \acs{3GPP} TS 24.527~\cite{ETSI_TS_124_526_V18_6_0} and \acs{3GPP} TS 23.503~\cite{ETSI_TS_123_503_V18_5_0}. However, in contrast to network slices, no common template is standardized or recommended for the definition of a \acs{UE}. Because of this, this dissertation proposes a minimal blueprint for modeling \acs{5G} \acsp{UE}, which is presented in Table~\ref{tab:proposal:delivery:ue-blueprint}.
 
-The blueprint identifies the requested slice for the \acs{UE} via the \acs{SST} and optional \acs{SD} fields. In addition, it specifies the aggregate bitrate limits, as well as optional static addressing for the established \acs{PDU} session. These fields constitute a minimal common set and may be extended with implementation specific parameters required by different \acs{5G} distributions.
+The blueprint identifies the \acs{UE}'s subscription through its \acs{SUPI}, in an \acs{IMSI} format. The requested slice is identified via the \acs{SST} and optional \acs{SD} fields. In addition, it specifies the aggregate bitrate limits, as well as the target \acs{DNN} and optional static addressing for the established \acs{PDU} session. These fields constitute a minimal common set and may be extended with implementation specific parameters required by different \acs{5G} distributions.
 
 \begin{table}[htbp]
     \centering
@@ -42,13 +42,17 @@ The blueprint identifies the requested slice for the \acs{UE} via the \acs{SST} 
         \hline
         \textbf{\acs{UE} Parameter} & \textbf{Description} \\
         \hline
+        \acs{SUPI} : \acs{IMSI} & Subscription Permanent Identifier, in \acs{IMSI} format, uniquely identifying the \acs{UE}'s subscription in the \acs{5G} network \\
+        \hline
         Requested\acs{NSSAI} : \acs{SST}  & Slice Service Type that identifies the category of the network slice requested by the \acs{UE} \\
         \hline
         Requested\acs{NSSAI} : \acs{SD}  & Optional Slice Differentiator that, with \acs{SST}, forms the \acs{S-NSSAI} uniquely identifying the slice requested by the \acs{UE} \\
         \hline
-        SessionAmbr : Uplink & Maximum bitrate allowed for \acs{UE} uplink traffic \\
+        SessionAmbr : Uplink & Maximum aggregate bitrate allowed for \acs{UE} uplink traffic \\
         \hline
-        SessionAmbr : Downlink & Maximum bitrate allowed for \acs{UE} downlink traffic \\
+        SessionAmbr : Downlink & Maximum aggregate bitrate allowed for \acs{UE} downlink traffic \\
+        \hline
+        PduSession : \acs{DNN} & Data network to which the \acs{UE}'s \acs{PDU} session is established \\
         \hline
         PduSession : IPv4 & Optional field to request a static IPv4 address for the \acs{UE} \\
         \hline
