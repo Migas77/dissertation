@@ -1,36 +1,48 @@
 \section{Network Observability}
 \label{chap:proposal:observability}
 
-The correct functioning of a vertical application is directly affected by the network conditions under which it operates. Undetected QoS violations or changes in network conditions may compromise or mandate different application behavior. The \textit{AsSessionWithQoS} and \textit{AnalyticsExposure} \acsp{API}, presented in the previous section, address this need by exposing \acs{QoS} and network analytics to external applications through their standardized interfaces. Nevertheless, these \acsp{API} provided by the \acs{NEF} constitute only the northbound interface and do not autonomously generate the underlying measurements conveyed in its payloads. These must be actively and autonomously collected from the network and relevant network functions, such as the \acs{UPF}, \acs{SMF} and \acs{AMF}, and made available through a dedicated observation layer. Moreover, due to the incompleteness of current \acs{NEF} implementations, it may be necessary to implement the corresponding southbound functionality to retrieve these measurements from the testbed's monitoring mechanisms and, consequently, expose them to network applications. Without it, network applications lack the necessary mechanisms to detect degradations of \acs{QoS} and changes or anomalies within the network, directly risking the correct functioning of network applications.
+The correct functioning of a vertical application is directly affected by the network conditions under which it operates. Undetected QoS violations or changes in network conditions may compromise or mandate different application behavior. The \textit{AsSessionWithQoS} and \textit{AnalyticsExposure} \acsp{API}, presented in the previous section, address part of this need by exposing \acs{QoS} and network analytics to external applications through their standardized interfaces. Nevertheless, these \acsp{API} provided by the \acs{NEF} constitute only the northbound interface and do not autonomously generate the underlying measurements conveyed in its payloads. These must be collected from the network and relevant network functions, such as the \acs{UPF}, \acs{SMF} and \acs{AMF}, and made available through a dedicated observation layer. In the \acs{5G} System, this role is largely assigned to the \acs{NWDAF}, which collects data from these \acsp{NF} and the management system to derive the analytics later exposed through the \acs{NEF}~\cite{ETSI_TS_123_288_V18_11_0}.
 
-In Section \ref{sec:testingandvalidation:metrics}, Table \ref{tab:metrics:all} presented the full set of metrics and \acsp{KPI} collected across the researched State of the Art. From this broader survey, the metrics most relevant to the proposed testbed have been selected and presented in Table \ref{tab:proposal:observability:metrics}, grouped by their source \acs{NF} and identified relevance for their collection. Overall, the selection process prioritizes metrics that directly reflect the \acs{QoS} conditions under which network applications operate, and therefore help them assess and respond to changing network conditions. Furthermore, these metrics will serve as the foundation for validating network application behavior, allowing to attribute its correct or incorrect operation to its own implementation code rather than to external network conditions.
+Moreover, due to the incompleteness of current \acs{NEF} (and \acs{NWDAF}) implementations, it may be necessary to implement the corresponding southbound functionality to retrieve these measurements from the testbed's monitoring mechanisms and, consequently, expose them to network applications. Without it, network applications would be unable to detect degradations of \acs{QoS} and changes or anomalies within the network through the \acs{NEF}.
 
-\begin{table}[ht]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\rowcolors{2}{gray!15}{white}
-\begin{tabular}{p{2.5cm} p{3.5cm} p{7cm}}
-\toprule
-\textbf{NF Source} & \textbf{Metric} & \textbf{Relevance} \\
-\midrule
-\acs{UPF} & \acs{UL}/\acs{DL} throughput (per \acs{PDU} session) & Primary indicator of bandwidth \acs{QoS} compliance; validates enforced \acs{QoS} profiles per slice and \acs{UE} \\
-\acs{UPF} & Packet loss rate & Reflects data plane reliability; relevant to latency-sensitive and reliability-critical applications \\
-\acs{UPF} & \acs{RTT} / latency & Measures end-to-end delivery delay; essential for applications with strict latency \acs{SLA} \\
-\acs{UPF} & Jitter & Captures delay variation; critical for real-time media and control-plane applications \\
-\acs{AMF} & \acs{UE} registration \& reachability state & Feeds the \textit{MonitoringEvent} \acs{API} subscription logic; triggers adaptive application behavior on connectivity changes \\
-\acs{SMF} & Active \acs{PDU} session count & Provides session-level visibility; supports correlation between session lifecycle events and observed metrics \\
-\bottomrule
-\end{tabular}
-\caption{Selected network observability metrics organized by source \acs{NF}, with relevance to the use cases in Table~\ref{tab:metrics:all} \later{verify table}}
-\label{tab:proposal:observability:metrics}
+In respect to this, the testbed should provide objective communication metrics that characterize network conditions as experienced by the application. For example, throughput and traffic volume measurements, relevant for assessing whether the network can sustain an application's current data rate and capacity requirements, as in smart manufacturing, where large numbers of deployed sensors continuously generate data the network must support.
+
+In Section \ref{sec:testingandvalidation:metrics}, Table \ref{tab:metrics:all} presented the full set of metrics and \acsp{KPI} collected across the researched State of the Art. From this broader survey, the metrics most relevant to the proposed testbed have been selected and presented in Table \ref{tab:proposal:observability:metrics}, grouped by their source and identified relevance for their collection.
+
+\begin{table}[htbp]
+    \centering
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}m{\widthof{NG-RAN}}|
+        >{\RaggedRight\arraybackslash}m{\widthof{UL/DL throughput}}|
+        >{\RaggedRight\arraybackslash}X|}
+        \hline
+        \textbf{Source} & \textbf{Metric} & \textbf{Relevance} \\
+        \hline
+        \acs{AMF} & \acs{UE} registration \& reachability state & Exposed to applications via \acs{NEF} \textit{MonitoringEvent} \acs{API}; allows adaptive application behavior on connectivity changes \\
+        \hline
+        \acs{SMF} & Active \acs{PDU} session count & Reflects session load at the \acs{SMF}/\acs{UPF}; supports correlation between session lifecycle events and observed metrics \\
+        \hline
+        \acs{UPF} & \acs{UL}/\acs{DL} throughput (per \acs{PDU} session) & Primary indicator of bitrate \acs{QoS} compliance; reflects if the \acs{QoS} profiles enforced per slice and \acs{UE} are met \\
+        \hline
+        \acs{UPF}, \acs{NG-RAN} & Packet loss rate & Captures data plane reliability; \newline relevant for reliability-critical applications \\
+        \hline
+        \acs{UPF}, \acs{NG-RAN} & \acs{UL}/\acs{DL}/round-trip packet delay & Measures delivery delay between the \acs{UE} and \acs{UPF}; essential for applications with strict latency \acs{SLA} \\
+        \hline
+        \acs{UPF}, \acs{NG-RAN} & Jitter & Derived from consecutive packet delay samples; critical for real-time media and control applications \\
+        \hline
+    \end{tabularx}
+    \caption{Selected network observability metrics organized by source}
+    \label{tab:proposal:observability:metrics}
 \end{table}
 
-As highlighted in Section~\ref{sec:testingandvalidation}, many validation pipelines rely on manually triggered scripts (e.g. ping, hperf) or ad hoc procedures to collect network metrics. Such an approach may be acceptable in isolated research efforts where the purpose of metrics collection is tightly scoped to a single specific goal, but is inadequate for application-level validation in the context of a testbed. For the proposed testbed, delegating this responsibility to each application (and each client) individually would not only introduce redundant and inconsistent workflows, but would also be architecturally inappropriate, as network applications will operate outside the \acs{5G} core and network application developers, as external parties to the testbed, lack both the access and the expertise to collect the measurements themselves.
+Most metrics in Table \ref{tab:proposal:observability:metrics} would be retrieved directly from the \acs{NF} identified as their source. The exceptions are delay, packet loss and jitter, as these characterize the data path between the \acs{UE} and the \acs{UPF}, spanning both the radio and core segments of the network. Thus, delay measurements at the \acs{UPF} would rely on the \acs{QoS} monitoring procedure of the \acs{5G} System, in which the \acs{NG-RAN} reports the radio segment of the measurement, between the \acs{UE} and the \acs{NG-RAN}, and the \acs{UPF} reports the core segment, between the \acs{NG-RAN} and the \acs{UPF}~\cite{ETSI_TS_123_501_V16_9_0}. Jitter, in turn, is not directly measured, being derived by the \acs{PCF} from these delay measurements~\cite{ETSI_TS_123_501_V16_9_0}. Packet loss is likewise not covered by this procedure, being instead obtained from performance measurements collected at the \acs{NG-RAN} and at the N3 interface of the \acs{UPF}, which the \acs{NWDAF} combines into an end-to-end packet loss rate between the \acs{UE} and the \acs{UPF}~\cite{ETSI_TS_123_288_V18_11_0}.
 
-Therefore, the objective is to establish a monitoring process that operates autonomously, without human intervention, and that allows network application developers to obtain insights on the network and continuously evaluate it against the declared \acs{QoS} requirements of each deployed application. This is particularly critical in multi-tenant scenarios, where multiple applications and slices must be monitored independently and simultaneously, and can be achieved in the two following ways: passive and active monitoring.
+As highlighted in Section~\ref{sec:testingandvalidation}, many validation pipelines rely on manually triggered scripts (e.g. ping, hperf) or ad hoc procedures to collect network metrics. Such an approach may be acceptable in isolated research efforts where the purpose of metrics collection is tightly scoped to a single specific goal, but is inadequate for application-level validation in the context of a testbed. For the proposed testbed, delegating this responsibility to each application (and each client) individually would not only introduce redundant and inconsistent workflows, but would also be architecturally inappropriate, as network applications will operate outside the \acs{5G} core and network application developers, being by definition external parties to the testbed, lack both the access, the insight and the expertise into the infrastructure and network internals needed to collect these measurements themselves. Not to mention that it would be a security concern.
 
-At the application level, the testbed should also provide logs and resource metrics (e.g.~\acs{CPU} usage, memory consumption), typically sourced from the orchestration platforms hosting the application and the testbed's services (e.g. Kubernetes, \acs{OSM}).
+The testbed should therefore autonomously monitor the network, without human intervention, and make the resulting metrics available to its clients, scoped to each experiment. These comprise \acs{QoS} measurements for network components, such as network slices and \acsp{UE}, as well as the workload performance of \acsp{NF}. At the application level, the testbed should also provide logs and resource metrics (e.g.~\acs{CPU} usage, memory consumption), typically sourced from orchestration platforms hosting the application and the testbed's services (e.g. Kubernetes, \acs{OSM}).
+
+Together, these would allow network application developers to obtain insights on the network and continuously evaluate it against the declared \acs{QoS} requirements of each deployed application. It would also enable them to adjust to changing conditions and attribute observed application behavior to their implementation rather than to unknown causes. This is particularly critical in multi-tenant scenarios, where multiple applications and slices must be monitored independently and simultaneously, and can be achieved in the two following ways: passive and active monitoring.
 
 \subsection{Passive Monitoring}
 \label{chap:proposal:observability:passivemonitoring}
