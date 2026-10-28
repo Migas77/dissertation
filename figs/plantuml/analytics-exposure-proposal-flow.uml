@@ -1,0 +1,24 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "AF" as AF
+participant "NEF" as NEF
+
+== Subscription ==
+
+AF -> NEF : Nnef_AnalyticsExposure Subscribe Request
+NEF --> AF : Nnef_AnalyticsExposure Subscribe Response
+rnote right of NEF : Analytics reporting\n(periodic / one-time / on event detection)
+NEF -> AF : Nnef_AnalyticsExposure Notify
+
+== Fetch ==
+
+AF -> NEF : Nnef_AnalyticsExposure Fetch Request
+NEF --> AF : Nnef_AnalyticsExposure Fetch Response
+
+@enduml

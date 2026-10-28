@@ -1,7 +1,7 @@
 \section{Multi-Vertical Use Case}
 \label{chap:proposal:use-case}
 
-To assess the testbed's suitability for the development and validation of vertical applications in an end-to-end scenario, a Network Application will need to be developed and evaluated in the proposed testbed. This will demonstrate the testbed's capabilities and showcase how its underlying infrastructure and interfaces can be used to deploy and validate applications under the requirements of a specific vertical use case. Section \ref{sota:networkapplications:usecases} highlighted several possible network applications across distinct verticals and scenarios, such as \ac{CAM}, \ac{T&L}, and \ac{PPDR}. Given the testbed's goal of catering to multiple vertical industries, the considered \ac{PoC} targets the \ac{PPDR} and Automotive sectors through a vehicle collision detection and notification solution that bridges the two domains.
+To assess the testbed's suitability for the development and validation of vertical applications in an end-to-end scenario, a Network Application will need to be developed and evaluated in the proposed testbed. This will demonstrate the testbed's capabilities and showcase how its underlying infrastructure and interfaces can be used to deploy and validate applications under the requirements of a specific vertical use case. Section \ref{sota:networkapplications:usecases} highlighted several possible network applications across distinct verticals and scenarios, such as \ac{CAM}, \ac{TL}, and \ac{PPDR}. Given the testbed's goal of catering to multiple vertical industries, the considered \ac{PoC} targets the \ac{PPDR} and Automotive sectors through a vehicle collision detection and notification solution that bridges the two domains.
 
 This use case is motivated by the need to improve the safety of road users in the moments immediately after an accident. Following a vehicle collision, involved and nearby vehicles and pedestrians remain exposed to the hazards of the crash site, increasing the risk of secondary incidents before emergency services arrive. Mitigating this risk requires detecting incidents quickly and immediately alerting those at and approaching the crash site. In this scenario, a computer vision model would analyze a live video stream from fixed roadside cameras to detect collisions and trigger notifications in real time, requiring close integration with the mobile network to automate detection and alerting.
 
@@ -78,6 +78,8 @@ The remaining requirements address the quality attributes of the system, which a
     \item \label{enum:nfr:packaging} All application components shall be packaged as \acs{NFV} or containerized applications, deployable through the testbed's orchestration infrastructure.
 \end{custenumerate}
 
+% Interface requirements 
+\hide{
 \subsection{Interface Requirements}
 
 The functional, performance, and non-functional requirements defined in the previous section characterize the system's behavior and constraints. From these emerge a complementary category of requirements that is particularly relevant to the context of this dissertation, centered on a Testbed for Testing Network Exposure Interfaces: the interface requirements. Interface requirements specify how the system is required to interact with external systems (external interfaces) or with other elements within the system (internal interfaces)~\cite{ISORequirementsEngineering}.
@@ -161,4 +163,5 @@ On the other hand, CAMARA \acsp{API}, aligned with the objectives defined by the
         \item Explain how the \acs{PoC} exercises all implemented interfaces end-to-end: it onboards via CAPIF, consumes CAMARA APIs (Application Profiles to declare its requirements, Connectivity Insights Subscriptions to monitor performance, QoD to enforce them)
         \item Include another sequence diagram this time prioritizing the NEF. Showcase the added complexity of the NEF implementation flow comparatively to CAMARA APIs.
     \end{enumerate}
+}
 }

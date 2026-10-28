@@ -1,0 +1,19 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "AF" as AF
+participant "NEF" as NEF
+
+AF -> NEF : Nnef_AsSessionWithQoS Subscribe Request
+NEF --> AF : Nnef_AsSessionWithQoS Subscribe Response
+rnote right of NEF : QoS targets guaranteed / not guaranteed
+rnote right of NEF : QoS monitoring info (periodic / on-event)
+rnote right of NEF : Usage threshold crossed reporting
+NEF -> AF : Nnef_AsSessionWithQoS Notify
+
+@enduml
