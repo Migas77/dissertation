@@ -12,13 +12,13 @@ As previously mentioned, the experimental testbed is deployed on the 5GAIner inf
 
 In this experiment, a Kubernetes cluster (K3s\footnote{\url{https://k3s.io}}), responsible for orchestrating all containerized workloads ordered by third parties via the \acs{OSS}, was hosted on an Ubuntu 22.04 \acs{VM} with 8 vCPUs, 24 GB \acs{RAM}, and 120 GB disk. The same \acs{VM} also hosted OpenSlice, deployed with Docker Compose, and the slicing Generic Controller, deployed as a standalone Docker container. Because these resources are finite and some components, such as the \acs{5G} Core, are shared and stateful across experiments, any repetitions will be executed one after another, rather than in parallel, ensuring the reported times are not affected by contention between concurrent experiments.
 
-To conduct the experiment, a single \acs{TMF} service was previously created in the OpenSlice catalog, bundling the application with the \acs{RFS} services required to provide the testbed capabilities detailed in Section~\ref{chap:impl:delivery}. Ordering the service initiates the full service pipeline, orchestrated sequentially through \acs{LCM} rules, as depicted in Figure~\ref{fig:itavtestbed:service:provisioning}. Moreover, to ensure that every repetition follows an identical procedure, a Bash script was developed to automate the experiment (using \acs{TMF} \acsp{API}) and collect the information required to measure service provisioning times. The script ran directly on the same \acs{VM} used for the experiment. The experimental setup is illustrated in Figure~\ref{fig:results:delivery:experimentalsetup}.
+To conduct the experiment, a single \acs{TMF} service was previously created in the OpenSlice catalog, bundling the application with the \acs{RFS} services required to provide the testbed capabilities detailed in Section~\ref{chap:impl:delivery}. Ordering the service initiates the full service pipeline, orchestrated sequentially through \acs{LCM} rules, as depicted in Figure~\ref{proposal:delivery:orchestration-lifecycle}. Moreover, to ensure that every repetition follows an identical procedure, a Bash script was developed to automate the experiment (using \acs{TMF} \acsp{API}) and collect the information required to measure service provisioning times. The script ran directly on the same \acs{VM} used for the experiment. The experimental setup is illustrated in Figure~\ref{fig:results:delivery:experimentalsetup}.
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=1\linewidth]{figs/service_provisioning_experimental_setup-1.pdf}
-    \caption{Experimental Setup for this experiemnt}
-    \label{fig:impl:observability:dashboard:throughput}
+    \caption{Experimental Setup for this experiment}
+    \label{fig:results:delivery:experimentalsetup}
 \end{figure}
 
 \subsection{Procedure}
