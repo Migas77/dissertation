@@ -1,17 +1,142 @@
 \section{Service Delivery}
 \label{chap:impl:delivery}
 
-\plan{
-    \begin{enumerate}
-        \item Start with a diagram where you present the various steps:
-        \begin{itemize}
-            \item app design
-            \item network slice design
-            \item onboarding
-        \end{itemize}
-        \item Establish
-        \item Highlight
-        \item Introduce
-    \end{enumerate}
-}
+Within the testbed, \acs{OSL} was the chosen \acs{OSS}, serving as the single entry point for the delivery of both network services, such as network slices and \acsp{UE}, and generic testbed services, such as the network exposure interfaces. Following the \acs{TMF} service model introduced in Section~\ref{chap:impl:resource_lifecycle}, every testbed capability is available to verticals as an orderable \acs{CFS} in the OpenSlice catalog, accessible via \acs{TMF} \acsp{API} or its web portal. Following the \acs{TMF} \acs{ODA} service model, each \acs{CFS} decomposes into one or more \acsp{RFS} that encapsulate its internal provisioning logic.
 
+The implemented testbed offers the following list of \acs{TMF} \acsp{CFS}: Network Slice, \acs{UE}, Monitoring, \acs{CAPIF}, \acs{NEF}, and CAMARA \acsp{API}, aligned with the experimentation service chain proposed at Section~\ref{chap:proposal:delivery:orchestration-lifecycle}, depicted in Figure~\ref{proposal:delivery:orchestration-lifecycle}.
+
+Network slices and their associated \acs{UE} are provisioned through the \acs{OSL} Generic Controller described in Section~\ref{chap:impl:resource_lifecycle:controller}, which maps resource lifecycle events into calls to a proprietary Network Slice Manager \acs{API} provided by the 5GAIner infrastructure. The Network Slice and \acs{UE} \acsp{CFS} encapsulate the payload parameters of this upstream \acs{API}, exposing them to verticals as a set of standardized characteristics. The Network Slice \acs{CFS} inherits the characteristics defined in the \acs{GSMA} \acs{GST}, whose values are specified for each order to instantiate a \acs{NEST} that describes the requested slice configuration.
+
+In order to assess the degree of alignment between the Slice Manager \acs{API} and the \acs{GST}~\cite{GSMA_GST} standard regarding the definition of a network slice, a comparative analysis was conducted between the two. Table~\ref{tab:impl:delivery:gst-mapping} summarizes the results of this analysis, classifying each field as a direct, partial or absent match. The following conclusions were reached. The maximum throughput per \acs{UE}, the throughput per network slice, the capacity fields, the delay tolerance and the \acs{DNN} correspond directly to \acs{GST} attributes, with some minor simplifications. The deterministic communication, packet size and mobility fields are also defined at the network slice level in both models, differing only in representation, namely the separation of uplink and downlink values and the use of mobility classes instead of absolute velocities. The latency, guaranteed bitrate per \acs{UE} and priority fields approximate the parameters of the \acs{GST} slice quality of service attribute, since these parameters are defined per \acs{5QI}, which is not exposed by the Slice Manager \acs{API}. The coverage area also has a \acs{GST} counterpart, but identifies baseband units instead of countries. The remaining fields, such as the reliability, the \acs{S-NSSAI}, the \acs{RAN} scheduling parameters and the N6 protection rules, have no \acs{GST} counterpart, being specific to the Slice Manager implementation.
+
+Based on these findings, the Network Slice \acs{CFS} was extended to include the fields without a \acs{GST} counterpart as additional characteristics, alongside those aligned with the \acs{GST} attributes. As a result, verticals can still configure the capabilities specific to the 5GAIner infrastructure, while relying on a standardized data model for defining network slice capabilities. Partially matching fields retain the representation of the Slice Manager \acs{API} and are exposed as additional characteristics. The resulting Network Slice \acs{CFS} specification is depicted in Figure~\ref{fig:impl:delivery:slice-cfs}, although not all of its characteristics are visible in the figure. Characteristics dedicated to the Slice Manager are identified by the \texttt{SM:} prefix, while the remaining ones are inherited from the \acs{GST}. The underlying Network Slice \acs{RFS}, in turn, fully follows the payload of the Slice Manager \acs{API}, as defined in Section~\ref{chap:impl:resource_lifecycle:controller}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/network-slice-cfs.png}
+    \caption{Network Slice \acs{CFS} specification}
+    \label{fig:impl:delivery:slice-cfs}
+\end{figure}
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}m{\widthof{\{uplink,downlink\}\_guaranteed}}|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}m{\widthof{Partial}}|
+        >{\RaggedRight\arraybackslash}X|}
+        \hline
+        \textbf{Slice Manager Field} & \textbf{\acs{GST} Attribute (Clause)} & \textbf{Match} & \textbf{Remarks} \\
+        \hline
+        \texttt{delay\_tolerance} & Delay tolerance (3.4.3) & Direct & -- \\
+        \hline
+        \texttt{dnn} & Supported data network (3.4.39) & Direct & Single data network, without service category \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak maximum\_\allowbreak bitrate\_\allowbreak per\_\allowbreak ue\_\allowbreak kbps} & \acs{UL} and \acs{DL} maximum throughput per \acs{UE} (3.4.32, 3.4.6) & Direct & Without service category \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak guaranteed\_\allowbreak bitrate\_\allowbreak per\_\allowbreak slice\_\allowbreak kbps} & \acs{UL} and \acs{DL} throughput per network slice: guaranteed throughput quota (3.4.31, 3.4.5) & Direct & -- \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak maximum\_\allowbreak bitrate\_\allowbreak per\_\allowbreak slice\_\allowbreak kbps} & \acs{UL} and \acs{DL} throughput per network slice: maximum throughput (3.4.31, 3.4.5) & Direct & -- \\
+        \hline
+        \texttt{max\_\allowbreak number\_\allowbreak of\_\allowbreak ues} & Maximum number of \acsp{UE} (3.4.17) & Direct & Without counting parameters \\
+        \hline
+        \texttt{max\_\allowbreak number\_\allowbreak of\_\allowbreak pdu\_\allowbreak sessions} & Maximum number of \acs{PDU} sessions (3.4.16) & Direct & Without counting parameters \\
+        \hline
+        \texttt{terminal\_\allowbreak density} & \acs{UE} density (3.4.30) & Direct & -- \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak deterministic\_\allowbreak communication}, \texttt{\{uplink,downlink\}\_\allowbreak deterministic\_\allowbreak periodicity} & Deterministic communication (3.4.4) & Direct & Separate uplink and downlink values \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak max\_\allowbreak packet\_\allowbreak size\_\allowbreak bytes} & Maximum supported packet size (3.4.11) & Direct & Separate uplink and downlink values \\
+        \hline
+        \texttt{ue\_\allowbreak mobility\_\allowbreak level} & Supported device velocity (3.4.28) & Direct & Mobility classes instead of velocity in km/h \\
+        \hline
+        \texttt{coverage\_\allowbreak area} & Area of service: region specification (3.4.2) & Partial & Baseband unit identifiers instead of country codes \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak latency\_\allowbreak ms} & Slice quality of service: packet delay budget (3.4.26) & Partial & Separate uplink and downlink values, whereas the budget is defined per \acs{5QI} \\
+        \hline
+        \texttt{\{uplink,downlink\}\_\allowbreak guaranteed\_\allowbreak bitrate\_\allowbreak per\_\allowbreak ue\_\allowbreak kbps} & Slice quality of service: guaranteed flow bit rate (3.4.26) & Partial & Defined per \acs{UE} instead of per \acs{GBR} \acs{QoS} flow \\
+        \hline
+        \texttt{priority\_\allowbreak label} & Slice quality of service: priority level (3.4.26) & Partial & Scale from 0 to 100, not associated with a \acs{5QI} \\
+        \hline
+        \texttt{reliability} & None & None & Percentage value from 0 to 100 \\
+        \hline
+        \texttt{sst}, \texttt{sd} & None & None & \acs{S-NSSAI} of the slice \\
+        \hline
+        \texttt{slice\_\allowbreak id} & None & None & Selects a \acs{DNN} \acs{QoS} template within the \acs{S-NSSAI} \\
+        \hline
+        \texttt{scheduling\_\allowbreak type}, \texttt{\{uplink,downlink\}\_\allowbreak \{min,max\}\_\allowbreak resource\_\allowbreak block\_\allowbreak ratio} & None & None & \acs{RAN} scheduling and resource allocation \\
+        \hline
+        \texttt{n6\_\allowbreak protection} & None & None & Firewall and rate limiting rules on N6 interface \\
+        \hline
+    \end{tabularx}
+    \caption{Correspondence between the Network Slice \acs{CFS} characteristics and the \acs{GST} attributes}
+    \label{tab:impl:delivery:gst-mapping}
+\end{table}
+
+The \acs{UE} \acs{CFS} follows the blueprint proposed in Table~\ref{tab:proposal:delivery:ue-blueprint}, defining the characteristics needed to configure each device's subscription, associate it with the target slice, and specify its session parameters, including \acs{AMBR} fields for uplink and downlink traffic, and the \acs{DNN}. Following the same approach as before, parameters exclusive to the Slice Manager \acs{API} are identified by the same prefix. The static IPv6 address defined in the blueprint is not supported by the Slice Manager \acs{API} and is therefore not included in the specification. The resulting \acs{UE} \acs{CFS} specification is depicted in Figure~\ref{fig:impl:delivery:ue-cfs}.
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/user-equipment-cfs.png}
+    \caption{\acs{UE} \acs{CFS} specification}
+    \label{fig:impl:delivery:ue-cfs}
+\end{figure}
+
+The remaining services follow a \ac{HaaS} approach, exposing Helm charts as \acs{TMF} service specifications that are orchestrated on Kubernetes through Argo CD Application custom resources. These include includes the network exposure layer and the monitoring stack, encompassing the per-\acs{UE} prober and Grafana dashboards. For this purpose, each service is backed by an \acs{RFS} related to the Argo CD Application resource specification, whose lifecycle is defined through \acs{LCM} rules. A pre-provisioning rule populates the Application manifest that references the corresponding Helm chart, injecting order-specific values such as the slice identifier or other characteristics configured by the vertical. The health status reported by Argo CD for the deployed Application is then mapped to the \acs{TMF} resource state, allowing \acs{OSL} to track the provisioning of each service.
+
+This required the development of a dedicated Helm chart for the monitoring stack\footnote{\later{add link monitoring stack helm}}, while the existing charts for the \acs{NEF}Sim\footnote{\later{add link NEFSIM helm}} and CAMARA \acsp{API}\footnote{\later{add link CAMARA helm}} were adapted for integration into the testbed. The same is true for Open\acs{CAPIF}. Thus, each of these services is exposed as a \acs{CFS} backed by an \acs{RFS}, which provisions an Argo CD Application custom resource on the Kubernetes cluster. This Application is then picked up by Argo CD, which deploys the referenced Helm chart and provisions the underlying Kubernetes resources, such as pods and services.
+
+Figure~\ref{fig:impl:delivery:monitoring-haas} illustrates this chain for the monitoring stack, in which the Monitoring \acs{CFS}, configured with the target slice and the active probing parameters, is decomposed into the Monitoring \acs{RFS}. The \texttt{PRE\_PROVISION} \acs{LCM} rule, defined with blockly\footnote{\url{https://www.blockly.com/}}, of the Monitoring \acs{RFS} populates the Argo CD Application manifest with these parameters, which then deploys the Grafana dashboards and the active prober. To this end, the manifest is defined within the rule as a text template, whose placeholders are filled with the values of the ordered characteristics, such as the slice identifier and the probed \acsp{IMSI}, when the rule is executed. For simplicity, only the monitoring stack is included here, although a similar chain was implemented for the remaining \acs{HaaS} services.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/monitoring-haas.png}
+    \caption{\acs{HaaS} provisioning chain of the monitoring stack}
+    \label{fig:impl:delivery:monitoring-haas}
+\end{figure}
+
+Besides the \texttt{PRE\_PROVISION} rules of the \acsp{RFS}, the developed \acsp{CFS} rely on two further types of \acs{LCM} rules\footnote{\url{https://osl.etsi.org/documentation/release0/lcm/}}. \texttt{CREATION} rules allow to propagate the \acs{CFS} attributes downwards to the underlying \acs{RFS} while it is being created. In the Monitoring \acs{CFS}, this rule passes the target slice and the active probing parameters defined by the vertical to the Monitoring \acs{RFS}, where they are consumed by its \texttt{PRE\_PROVISION} rule, and incorporated to the corresponding deployments.
+
+Furthermore, in order to support changes to the service characteristics at runtime, \texttt{SUPERVISION} rules run whenever a characteristic of an active service is changed, allowing the vertical to reconfigure a service after its activation. For the Network Slice and \acs{UE} \acsp{CFS}, these rules keep the characteristics of both services synchronized, so that a change in the customer requirements is reflected in the corresponding \acs{RFS} and enforced by the Generic Controller through the Slice Manager \acs{API}, as described in Section~\ref{chap:impl:resource_lifecycle}. For the \acs{HaaS} services, the \texttt{SUPERVISION} rule of the \acs{CFS} generates a new manifest from the same template with the updated values and replaces the one stored in the \acs{RFS}, which is then patched on the Kubernetes cluster and synchronized by Argo CD. In the Monitoring \acs{CFS}, this allows to dynamically change the prober conditions at runtime, such as the probing interval, or even the targeted \acs{IMSI}.
+
+Figure~\ref{fig:impl:delivery:monitoring-lcm} depicts the \texttt{CREATION} and \texttt{SUPERVISION} \acs{LCM} rules defined for the Monitoring \acs{CFS}, once again as a representative example of what was achieved for the remaining aforementioned services.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/monitoring-creation-supervision.png}
+    \caption{\texttt{CREATION} and \texttt{SUPERVISION} \acs{LCM} rules of the Monitoring \acs{CFS}}
+    \label{fig:impl:delivery:monitoring-lcm}
+\end{figure}
+
+Regarding the network exposure layer, the dependency chain and the optional components identified in Section~\ref{chap:proposal:delivery:design} are realized through the characteristics and \texttt{CREATION} rules of the exposure \acs{CFS}. Two flags define whether \acs{CAPIF} is enabled and whether the experimenter requires the CAMARA \acsp{API}, both being optional components provisioned around the \acs{NEF}. Since these components are deployed as independent services, the Kubernetes location of each deployed instance, e.g. its namespace and the name of its Argo CD Application, is passed between services through \texttt{CREATION} rules, sourced from the characteristics assigned by \acs{OSL} to each provisioned \acs{RFS}. This is particularly relevant when \acs{CAPIF} is disabled, as the \acs{NEF}, the CAMARA \acsp{API} and the network application then require direct references to each other, whereas with \acs{CAPIF} these references are abstracted by its service discovery mechanism. Moreover, the \acs{NEF}Sim Helm chart allows the backend of each \acs{API} to be selected through environment variables, defined in the \acs{NEF} \acs{RFS}. For instance, analytics can be served either by a stub that emulates the reported values or by queries to the Prometheus instance of the testbed, while \acs{QoS} requests can be enforced on the live network through the Slice Manager \acs{API} or also simulated.
+
+The Monitoring \acs{CFS} follows the requirements identified for the network observability service. Active probing is disabled by default, since the prober only targets the \acsp{UE} whose \acsp{IMSI} are explicitly listed by the vertical. The dashboards, in turn, are scoped to the slice identifier provided to the service, being published under a path specific to that slice. To keep both the dashboards and the probes aligned with the current state of the experiment, the monitoring stack includes a slice poller that periodically retrieves the \acsp{UE} associated with the slice from the Slice Manager \acs{API}. Newly attached \acsp{UE} are thus added to the slice dashboard, and the probed \acsp{IMSI} are resolved to their current \acs{IP} addresses, without requiring the service to be redeployed.
+
+Together, these \acs{TMF} services realize the full set of capabilities identified in this dissertation: (i) network slice and \acs{UE} provisioning establish the connectivity and \acs{QoS} requirements underlying every experiment, (ii) monitoring components provide visibility into network conditions, and (iii) \acs{NEF} and CAMARA, secured by \acs{CAPIF}, expose these capabilities through standardized \acsp{API} so third-party applications can interact with the network and integrate it with their own services. Verticals can similarly package their own application as an additional \acs{TMF} service orchestrated alongside these components. Following the same \acs{HaaS} approach, the vertical can package its application as a Helm chart and create the corresponding \acs{RFS}.
+
+The services of an experiment can be ordered individually or as a whole. To support the latter, a bundle \acs{CFS} was created to aggregate the network application and all \acs{RFS} associated with the testbed capabilities into a single, orderable service, capable of realizing the service provisioning chain proposed in Figure~\ref{proposal:delivery:orchestration-lifecycle}. Once again, this provisioning sequence can be achieved through the \texttt{CREATION} rules of the bundle, as illustrated in Figure~\ref{fig:impl:delivery:chain}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/experimentation-bundle.png}
+    \caption{Provisioning chain of the experiment bundle \acs{CFS}}
+    \label{fig:impl:delivery:chain}
+\end{figure}
+
+Each rule creates one \acs{RFS} only once the condition defined over its predecessor holds, propagating the required characteristics in the process. The Network Slice \acs{RFS} is created first, followed by the \acs{UE} \acs{RFS} once the slice is active, which receives the slice identifier and the \acs{S-NSSAI} of the provisioned slice. The Monitoring \acs{RFS} is then created once the \acs{UE} is active, receiving the slice identifier. The exposure \acsp{RFS} follow, with \acs{CAPIF}, when enabled, the \acs{NEF} and the CAMARA \acsp{API}, when enabled, each one created only after its predecessor is active and reported as synchronized and healthy by Argo CD. This synchronization and health status of the Argo CD Application is mirrored by \acs{OSL} into the \acs{TMF} service characteristics of the corresponding \acs{RFS}, namely \texttt{status.sync.status} and \texttt{status.health.status}, from which the conditions of the \texttt{CREATION} rules are evaluated. Finally, the network application is deployed once the exposure layer is ready. Consequently, a failure in any phase prevents the creation of all subsequent services, while the termination of the bundle terminates all of its supporting services.
+
+Figure~\ref{fig:impl:delivery:ordering} presents an example of one of these rules, illustrating how the provisioning order is enforced. The depicted rule creates the CAMARA \acs{RFS} only when the CAMARA \acsp{API} are requested by the experimenter and the \acs{NEF} \acs{RFS} is active, synchronized and healthy. For readability purposes, this condition is decomposed into nested conditional blocks that set auxiliary local variables, rather than expressed as a single compound condition, without altering the logic of the rule. As with the previously described \texttt{CREATION} rules, the characteristics ordered in the bundle \acs{CFS} are also passed to each \acs{RFS} upon its creation, in this case whether \acs{CAPIF} is enabled and the reference to the deployed \acs{NEF} instance.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/osl/creation-rule.png}
+    \caption{Example of a \texttt{CREATION} rule of the bundle \acs{CFS} enforcing the provisioning order}
+    \label{fig:impl:delivery:ordering}
+\end{figure}
+
+Finally, it should be noted that \acs{LCM} rules are not restricted to containerized services or characteristics propagataion. \acs{OSL} also allows these rules to define and produce complex \acs{OSM} configurations, which are passed to the \acs{NFVO} through the \texttt{OSM\_CONFIG} characteristic of a service to instantiate the corresponding network services. Although this capability was not leveraged in the implementation of the testbed capabilities or of the network application, which are entirely deployed on Kubernetes, it remains available to verticals whose network applications are packaged as \acsp{VNF}, allowing them to be onboarded and orchestrated through the same service delivery approach.
+
+For reproducibility purposes, the \acs{TMF} service specifications and \acs{LCM} rules implementing the capabilities described in this section are publicly available on GitHub\footnote{\later{add link}}.
