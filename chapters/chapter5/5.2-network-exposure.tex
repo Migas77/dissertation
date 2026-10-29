@@ -1,20 +1,81 @@
 \section{Network Exposure Benchmark and Comparison}
 \label{chap:results:exposure}
 
-Experiment X
+Once the experiment is provisioned, the network application interacts with the \acs{5G} network through the exposure interfaces offered by the testbed, requesting and/or enforcing the network capabilities its use case depends on.
 
-All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 VM with 16 vCPUs, 32 GB RAM, and 256 GB disk.
-
-\later{FROM PAPER}
+This experiment measures and compares the time required to complete the operations supported by both the \acs{NEF} and the CAMARA \acsp{API}, as experienced by the network application. The objective is to quantify the overhead introduced by the CAMARA abstraction layer, which internally consumes the \acs{NEF}, and to assess whether it represents an acceptable tradeoff for its simpler, developer-facing interfaces. The experiment also validates that both exposure models retrieve equivalent information from the network, allowing verticals to choose either interface according to the requirements of their application.
 
 \subsection{Experimental Setup}
 \label{chap:results:exposure:setup}
 
+This experiment relies on the CAPIF, \acs{NEF}, and CAMARA services listed in Table~\ref{tab:impl:capabilities}, which are provisioned through OpenSlice alongside the network application. For this purpose, the application was deliberately configured to issue requests directly to the \acs{NEF} and the corresponding CAMARA \acsp{API}. As a CAPIF \acs{API} invoker, the application discovers and consumes the \acsp{API} provided by the \acs{NEF} and CAMARA that support the use case, and, for capabilities supported by both exposure models, either interface can be used, allowing both alternatives to be exercised.
+
+The testbed environment is the same as described in Section~\ref{chap:results:delivery:setup}, with OpenSlice and the Kubernetes cluster hosting the network exposure interfaces and the network application running on the same \acs{VM}. All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 \acs{VM} with 16 vCPUs, 32 GB \acs{RAM}, and 256 GB disk. The experimental setup is illustrated in Figure~\ref{fig:results:exposure:experimentalsetup}.
+
+To ensure that every repetition follows an identical procedure, a Bash script was developed to automate the experiment, issuing the requests to each endpoint and recording the corresponding response times. Between consecutive runs, the script also deletes the resources created by the previous request (e.g. \acs{QoS} sessions and subscriptions), ensuring that each repetition starts from the same state and that no accumulated resources affect the measured times. The experimental setup is illustrated in Figure~\ref{fig:results:exposure:experimentalsetup}.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/placeholder.png}
+    \caption{Experimental Setup for the Network Exposure Benchmark}
+    \label{fig:results:exposure:experimentalsetup}
+\end{figure}
+
 \subsection{Procedure}
 \label{chap:results:exposure:procedure}
+
+For each capability supported by both exposure models, the application issued the same operation through the \acs{NEF} and through the equivalent CAMARA \acs{API}, namely the creation of a \acs{QoS} session (\textit{AsSessionWithQoS} and \acs{QoD}), of an analytics subscription (\textit{AnalyticsExposure} and Connectivity Insights Subscriptions), and of a location subscription (\textit{MonitoringEvent} and Geofencing Subscriptions). The creation of application network requirements through the CAMARA Application Profiles \acs{API}, which has no \acs{NEF} counterpart, was also measured.
+
+Each endpoint was invoked 30 consecutive times, alternating between the endpoints under test, with the repetitions issued in rapid succession so that the underlying \acs{HTTPS} connections to the corresponding Fast\acs{API} backends remained open and were reused. For each request, the enforcement time was recorded, together with the additional latency introduced by the CAMARA abstraction.
+
+The response payloads obtained through both models were also compared and validated to confirm the same information is retrieved either way. Moreover, the analytics \acsp{API} were checked against generated synthetic traffic to confirm they reflected actual network activity.
 
 \subsection{Results and Discussion}
 \label{chap:results:exposure:discussion}
 
+Table~\ref{tab:results:exposure:apis} reports the enforcement times for each operation, including the additional latency introduced by the CAMARA abstraction.
+
+
+\begin{table}[htbp]
+    \centering
+    % 4 columns with 5 vertical bars and 8 instances of \tabcolsep, spanning the full \textwidth
+    % The first column fits the longest API name in a single line
+    % The remaining width is split equally among the other three columns
+    \newlength{\expfirstcolw}
+    \newlength{\expcolw}
+    \settowidth{\expfirstcolw}{\textbf{\textit{AnalyticsExposure} / Connectivity Insights Subs.}}
+    \setlength{\expcolw}{\dimexpr(\textwidth - 5\arrayrulewidth - 8\tabcolsep - \expfirstcolw)/3\relax}
+    \begin{tabular}{|>{\RaggedRight\arraybackslash}m{\expfirstcolw}|>{\centering\arraybackslash}m{\expcolw}|>{\centering\arraybackslash}m{\expcolw}|>{\centering\arraybackslash}m{\expcolw}|}
+        \hline
+        \multicolumn{1}{|c|}{\diagbox[innerwidth=\expfirstcolw]{\acs{API}}{Interface}} &
+        \textbf{\acs{NEF}} &
+        \textbf{CAMARA} &
+        \textbf{CAMARA}\newline\textbf{Overhead} \\
+        \hline
+        \textbf{\textit{AsSessionWithQoS} / \acs{QoD}}: Create \acs{QoS} Session & $28.392\,\pm$\newline$6.889$~ms & $45.014\,\pm$\newline$8.863$~ms & $18.280\,\pm$\newline$4.675$~ms \\
+        \hline
+        \textbf{Application Profiles}: Create Application Analytics Network Requirements & \textendash & $16.418\,\pm$\newline$4.044$~ms & \textendash \\
+        \hline
+        \textbf{\textit{AnalyticsExposure} / Connectivity Insights Subscriptions}: Create Subscription & $60.541\,\pm$\newline$13.815$~ms & $78.069\,\pm$\newline$19.532$~ms & $22.274\,\pm$\newline$7.905$~ms \\
+        \hline
+        \textbf{\textit{MonitoringEvent} / Geofencing Subscriptions}: Create Subscription & $29.678\,\pm$\newline$11.333$~ms & $42.031\,\pm$\newline$10.637$~ms & $17.486\,\pm$\newline$5.055$~ms \\
+        \hline
+    \end{tabular}
+    \caption{Application Response Time Comparison for \acs{NEF} and CAMARA \acsp{API}}
+    \label{tab:results:exposure:apis}
+\end{table}
+
+As expected, CAMARA requests consistently take longer than directly invoking the \acs{NEF}. Instead of interacting with the \acs{5G} network directly, CAMARA translates each request into a \acs{NEF} invocation and adapts the response to the CAMARA schema, so this \acs{NEF} segment accounts for most of the observed CAMARA path time, with the remainder corresponding to the abstraction's actual cost and the additional network call. Across the evaluated operations, this overhead ranged from approximately 17 to 22~ms. However, local testing indicated that this overhead should be even lower, at around 6 to 10~ms. This may result from a variety of factors. Unlike local testing, where containers run directly on localhost, the testbed utilizes a real Kubernetes deployment, in which requests between the CAMARA and \acs{NEF} services traverse the cluster network. In addition, the testbed runs on shared infrastructure, where concurrent workloads compete for the same computing and network resources, potentially increasing the observed response times.
+
+Although not tested here, the same observation applies to notifications delivered back to the application. Events originating from CAMARA subscriptions introduce additional latency compared to equivalent \acs{NEF} subscriptions, since notifications must traverse both the \acs{NEF} and CAMARA services before reaching the application. This is aggravated by the fact that, according to their respective specifications, none of the \acs{QoS} Provisioning, Connectivity Insights Subscriptions and Device Location CAMARA \acsp{API} support subscriptions targeting more than a single device. Therefore, monitoring the pedestrian \acsp{UE} in the vicinity of the camera requires the application to create, track and delete a separate subscription for each device, each incurring the setup cost reported in Table~\ref{tab:results:exposure:apis}. Similarly, when a condition affects multiple devices, the application receives one notification per subscription rather than a single aggregated event. This deviates from what is supported by the current \acs{NEF} specification, which allows an external group identifier to be used as the target for a subscription.
+
+The comparison of the response payloads confirmed that the same information is retrieved through both models, and the analytics \acsp{API} reflected the actual network activity. Overall, these results also demonstrate that the application could successfully interact with the network through both exposure interfaces.
+
+Nonetheless, each exposure model has its own advantages and limitations. CAMARA's simple \acsp{API} make it the more immediate path for developers without telco expertise, when its scope matches the application's intent, at the cost of a few tens of milliseconds' overhead (Table~\ref{tab:results:exposure:apis}). This is a worthwhile tradeoff for most use cases given CAMARA's integration benefits, though it comes with less flexibility, as explained prior.
+
 \subsection{Conclusions}
 \label{chap:results:exposure:conclusion}
+
+These results establish that the network application can request the aforementioned network capabilities through both exposure models, quantifying the response time of each operation offered by the \acs{NEF} and CAMARA \acsp{API}. The CAMARA abstraction layer consistently adds between 17 and 22~ms to each operation, while retrieving the same information as the \acs{NEF} through simpler, developer-friendly interfaces.
+
+For a vertical developer, both exposure models may support the intended use case. The decision between them depends on whether CAMARA's simplicity suffices for the application goal and whether its overhead is an acceptable tradeoff. Since the testbed offers both interfaces, this decision is left to the application developer, driven by the vertical application's requirements rather than the testbed's capabilities, as it should be.
