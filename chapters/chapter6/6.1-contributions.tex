@@ -1,4 +1,20 @@
 \section{Contributions}
 \label{chap:conclusions:contributions}
 
-\later{do NOT forget PAPER contribution}
+From the obtained results, it can be concluded that the objectives established for this dissertation have been achieved.
+
+The implemented features extend the \acs{ITAv}'s \acs{NEF} beyond a purely simulated environment, allowing network applications to interact with the live \acs{5G} network. The adaptation of the \textit{AsSessionWithQoS} \acs{API} to the updated Slice Manager allows applications to request and change \acs{QoS} sessions on demand.
+
+In turn, since the 5GAIner \acs{5G} core does not provide dedicated monitoring interfaces, an alternative monitoring mechanism was developed in this work, collecting network metrics directly from the \acs{5G} data path. This approach can be leveraged in any \acs{5G} deployment lacking such interfaces, without depending on the capabilities of the underlying core. Combined with the new \textit{AnalyticsExposure} \acs{API}, this mechanism collects and exposes the actual network conditions through a standardized interface, so that applications can verify whether the network meets their requirements.
+
+On top of these \acs{NEF} capabilities, the Application Profiles and Connectivity Insights Subscriptions \acsp{API} extend \acs{ITAv}'s CAMARA implementation with these network insights, which were previously unavailable through this exposure model. Applications can declare their network quality thresholds and be notified when the network no longer meets them, without handling the complexity of the corresponding \acs{NEF} procedures.
+
+Both exposure models were integrated with \acs{CAPIF}, so that network applications discover, authenticate and access them through a common set of procedures. Regarding service delivery, \acs{TMF} service specifications were developed for every orderable testbed capability, including network slices, \acsp{UE}, monitoring, \acs{CAPIF}, \acs{NEF} and CAMARA \acsp{API}, all delivered through the OpenSlice catalog and the \acs{TMF} Open \acsp{API}. This also constitutes an important outcome of the dissertation.
+
+In particular, the network slice and \acs{UE} specifications accommodate the \acs{GSMA} \acs{GST}, while retaining the characteristics specific to the \acs{ITAv}'s Slice Manager. Verticals, and further experimenters at \acs{ITAv}, can thus rely on these data models to define their network slices and configure the capabilities on the 5GAIner infrastructure. The same applies to the developed network application.
+
+Last, but certainly not least, the work presented in this dissertation culminated in the publication, as the main author, of a conference paper at the \acs{IEEE} Future Networks World Forum 2026, entitled 'An Open \acs{5G} Testbed for Vertical Application Development and Experimentation'. The corresponding reference is highlighted below.
+
+\begin{quote}
+    \textbf{Figueiredo, Miguel} \& Direito, Rafael \& Gomes, Diogo \& Aguiar, Rui. (2026). \newline \textit{An Open 5G Testbed for Vertical Application Development and Experimentation}.
+\end{quote}
