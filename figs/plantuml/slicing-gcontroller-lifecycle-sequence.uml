@@ -1,0 +1,65 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam QueueBackgroundColor White
+skinparam EntityBackgroundColor White
+skinparam ControlBackgroundColor White
+skinparam NoteBackgroundColor White
+
+entity OSOM
+queue MQa
+entity TMFAPI
+control SlicingGenericController as GC
+entity SliceManagerAPI as SM
+
+group Controller Startup [Controller Registration]
+  GC -> MQa : RegisterResourceSpec
+  MQa -> TMFAPI : RegisterResourceSpec
+  note left of TMFAPI : Network Slice and UE\nResourceSpecs
+  GC -> MQa : QueueRegister
+  note right of GC : CREATE/<category_name>/<version>\nUPDATE/<category_name>/<version>\nDELETE/<category_name>/<version>
+end
+
+group Lifecycle Event [Create, update or delete underlying resource]
+  OSOM -> MQa : GenericResourceMSG
+  MQa -> GC : GenericResourceMSG [{CREATE|UPDATE|DELETE}/<category_name>/<version>]
+end
+
+group Resource Controller Process [Process underlying resource]
+  GC -> GC : ProcessRequest
+  note right of GC : Map resource characteristics\nto Slice Manager payload
+  alt CREATE
+    GC -> SM : Network Slice: POST /core/slices\n\t[slice_id, sst, sd, dnn, {ul|dl}_latency_ms, {ul|dl}_{guaranteed|maximum}_bitrate_per_{ue|slice}_kbps, ...]\nUE: POST /core/ues/{ue_id}/slice-associations\n\t[slice_id, snssai, dnn, static_ipv4_address, {ul|dl}_aggregate_maximum_bitrate_kbps]
+  else UPDATE
+    GC -> SM : Network Slice: PATCH /core/slices/{slice_id}\n\t[{ul|dl}_latency_ms, {ul|dl}_{guaranteed|maximum}_bitrate_per_{ue|slice}_kbps, ...]\nUE: PATCH /core/ues/{ue_id}/slice-associations\n\t[slice_id, snssai, dnn]
+  else DELETE
+    GC -> SM : Network Slice: DELETE /core/slices/{slice_id}\nUE: DELETE /core/ues/{ue_id}/slice-associations/{slice_id}
+  end
+  SM --> GC : 202 Accepted [request_id]
+  GC -> MQa : ResourceUpdate [status=RESERVED, request_id, uses]
+  MQa -> TMFAPI : ResourceUpdate
+  GC -> MQa : ProvisioningMSG\n[resourceId, operation, ResourceUpdate (request_id)]
+  MQa -> GC : ProvisioningMSG [SLICING_PROVISION/<category_name>/<version>]
+  loop until state is completed or failed, or timeout
+    GC -> SM : GET /operations/{request_id}
+    SM --> GC : 200 OK [state]
+  end
+  alt state is completed
+    GC -> MQa : ResourceUpdate\n[status=AVAILABLE (CREATE, UPDATE) | SUSPENDED (DELETE)]
+  else state is failed or timeout
+    GC -> MQa : ResourceUpdate\n[status=SUSPENDED (CREATE, DELETE) | ALARM (UPDATE)]
+  end
+  MQa -> TMFAPI : ResourceUpdate
+  opt CREATE of a UE, state is completed
+    GC -> MQa : ResourceUpdate (Network Slice) [usedBy]
+    MQa -> TMFAPI : ResourceUpdate
+  end
+  opt DELETE of a network slice
+    GC -> MQa : ServiceUpdate [state=TERMINATED]\nfor each associated UE service
+    MQa -> TMFAPI : ServiceUpdate
+  end
+end
+
+@enduml

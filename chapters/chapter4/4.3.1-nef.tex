@@ -54,8 +54,6 @@ The \textit{AnalyticsExposure} \acs{API} specification~\cite{ETSI_TS_129_522_V18
 
 \begin{table}[htbp]
     \centering
-    \caption{Analytics events supported by the \textit{AnalyticsExposure} \acs{API}}
-    \label{tab:impl:exposure:nef:AnalyticsExposure:events}
     \begin{tabularx}{\textwidth}{
         >{\raggedright\arraybackslash\hsize=0.75\hsize}X
         >{\raggedright\arraybackslash\hsize=0.75\hsize}X
@@ -68,6 +66,8 @@ The \textit{AnalyticsExposure} \acs{API} specification~\cite{ETSI_TS_129_522_V18
         \texttt{WLAN\_\allowbreak PERFORMANCE} & Per \acs{UE} (\acs{GPSI}) and aggregated for all \acsp{UE} (\acs{SSID}), towards a single application server (\texttt{appServerAddrs}) & Uplink and downlink throughput, uplink, downlink and total volume, per time slot; number of target \acsp{UE} \\
         \hline
     \end{tabularx}
+    \caption{Analytics events supported by the \textit{AnalyticsExposure} \acs{API}}
+    \label{tab:impl:exposure:nef:AnalyticsExposure:events}
 \end{table}
 
 The \texttt{UE\_COMM} event characterizes the communication between the target \acsp{UE} and a set of applications, reporting the uplink and downlink traffic volume exchanged with each application. Although defined by \acs{3GPP} for \acs{WLAN} access, the \texttt{WLAN\_\allowbreak PERFORMANCE} event was adopted in this work as it allows reporting in a single payload the uplink/downlink throughput and traffic volume of each \acs{UE} over time, per time slot, according to the criteria specified by the consumer (i.e. the analytics time window and time slot duration, \texttt{temporalGranSize}).
