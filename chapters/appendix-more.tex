@@ -4,7 +4,7 @@
 \section{NEF Implementations} \label{appendix:NEF}
 
 \begin{longtable}{p{6cm} c c c}
-\caption{Northbound API Coverage across open source NEF Implementations}
+\caption{Northbound \acs{API} Coverage across open source \acs{NEF} Implementations}
 \label{tab:nef:comparision:long}\\
 \toprule
 \textbf{Northbound \acs{API}} & \textbf{Free5GC} & \textbf{NEFSim} \\
@@ -126,76 +126,76 @@ RSLPPIParametersProvisioning & $\times$             & $\times$ \\
 \begin{listing}[H]
 \begin{minted}{json}
 {
-  "id": "string",
-  "name": "string",
-  "administrative_state": "LOCKED",
-  "operational_state": "ENABLED",
-  "coverage_area": [
-    "string"
-  ],
-  "sst": 0,
-  "sd": "string",
-  "dnn": "string",
-  "prioritylabel": 0,
-  "reliability": 0,
-  "dllatency": 0,
-  "ullatency": 0,
-  "delaytolerance": "SUPPORTED",
-  "dldeterministiccomm": "SUPPORTED",
-  "uldeterministiccomm": "SUPPORTED",
-  "dlguathptperue": 0,
-  "ulguathptperue": 0,
-  "dlmaxthptperue": 0,
-  "ulmaxthptperue": 0,
-  "plmnid": 0,
-  "maxnumberofues": 0,
-  "dlguathptperslice": 0,
-  "ulguathptperslice": 0,
-  "dlmaxthptperslice": 0,
-  "ulmaxthptperslice": 0,
-  "dlmaxpktsize": 0,
-  "ulmaxpktsize": 0,
-  "maxnumberofpdusessions": 0,
-  "nroperatingbands": "string",
-  "slicesimultaneoususe": "0",
-  "energyefficiency": "eMBBEEPerfReq",
-  "termdensity": 0,
-  "activityfactor": 0,
-  "resourcesharinglevel": "shared",
-  "uemobilitylevel": "stationary",
-  "uespeed": 0,
-  "dldeterminperiodicity": 0,
-  "uldeterminperiodicity": 0,
-  "survivaltime": 0,
-  "positioningtype": "CIDE_CID",
-  "positioningfrequency": "PERSEC",
-  "positioningaccuracy": 0,
-  "synchronicitysupport": "NOT_SUPPORTED",
-  "synchronicityaccuracy": 0,
-  "nssaasupport": "SUPPORTED",
-  "n6protection": []
+  "slice_id": "embb-slice",
+  "coverage_area": ["it"],
+  "sst": 1,
+  "sd": "020202",
+  "dnn": "embb",
+  "priority_label": 1,
+  "ue_mobility_level": "nomadic",
+  "reliability": 99.9,
+  "uplink_max_packet_size_bytes": 1500,
+  "downlink_max_packet_size_bytes": 1500,
+  "scheduling_type": "BASIC_SCH",
+  "downlink_min_resource_block_ratio": 10,
+  "downlink_max_resource_block_ratio": 50,
+  "uplink_min_resource_block_ratio": 10,
+  "uplink_max_resource_block_ratio": 50,
+  "downlink_latency_ms": 15,
+  "uplink_latency_ms": 15,
+  "delay_tolerance": "NOT_SUPPORTED",
+  "downlink_deterministic_communication": "NOT_SUPPORTED",
+  "downlink_deterministic_periodicity": null,
+  "uplink_deterministic_communication": "NOT_SUPPORTED",
+  "uplink_deterministic_periodicity": null,
+  "downlink_guaranteed_bitrate_per_ue_kbps": 1000,
+  "uplink_guaranteed_bitrate_per_ue_kbps": 1000,
+  "downlink_maximum_bitrate_per_ue_kbps": 20000,
+  "uplink_maximum_bitrate_per_ue_kbps": 20000,
+  "downlink_guaranteed_bitrate_per_slice_kbps": 10000,
+  "uplink_guaranteed_bitrate_per_slice_kbps": 10000,
+  "downlink_maximum_bitrate_per_slice_kbps": 200000,
+  "uplink_maximum_bitrate_per_slice_kbps": 200000,
+  "terminal_density": 100,
+  "max_number_of_pdu_sessions": 20,
+  "max_number_of_ues": 10,
+  "n6_protection": [
+    {
+      "type": "firewall",
+      "name": "allow-video-ingest",
+      "priority": 1,
+      "server_ip": "10.16.9.10",
+      "mask_len": 32,
+      "start_port": 443,
+      "end_port": 443,
+      "uplink_guaranteed_bitrate_kbps": 10000,
+      "downlink_guaranteed_bitrate_kbps": 50000,
+      "uplink_maximum_bitrate_kbps": 20000,
+      "downlink_maximum_bitrate_kbps": 100000,
+      "protocol": "tcp",
+      "pass_block": "pass"
+    }
+  ]
 }
 \end{minted}
-\caption{Network Slice Payload, Slice Manager \acs{API} \later{add ref}}
+\caption{Network Slice Payload, Slice Manager \acs{API}}
 \label{code:slicemanager:payloads:netslice}
 \end{listing}
 
 \begin{listing}[H]
 \begin{minted}{json}
 {
-  "IMSI": 0,
-  "numIMSIs": 0,
-  "slice": "string",
-  "IPV4": "string",
-  "IPV6": "string",
-  "AMDATA": true,
-  "DEFAULT": "string",
-  "UEcanSendSNSSAI": "string",
-  "AMBRUP": 0,
-  "AMBRDW": 0
+  "slice_id": "embb-slice",
+  "snssai": "1-020202",
+  "dnn": "embb",
+  "static_ipv4_address": "10.16.9.5",
+  "access_mobility_data": true,
+  "snssai_advertisement_allowed": true,
+  "uplink_aggregate_maximum_bitrate_kbps": 1000,
+  "downlink_aggregate_maximum_bitrate_kbps": 3000
 }
 \end{minted}
-\caption{User Equipment Payload, Slice Manager \acs{API} \later{add ref}}
+\caption{User Equipment Slice Association Payload, Slice Manager \acs{API}, with the \acs{IMSI} provided as \texttt{ue\_id} path parameter}
 \label{code:slicemanager:payloads:ue}
 \end{listing}
 
