@@ -1,11 +1,16 @@
 \section{Chapter Summary}
 \label{chap:impl:summary}
 
-\plan{
-    \begin{enumerate}
-        \item (To be continued ...)
-        \item Establish
-        \item Highlight
-        \item Introduce
-    \end{enumerate}
-}
+This chapter presented the realization of the proposed testbed on the 5GAIner infrastructure at \acs{ITAv}. Section~\ref{chap:impl:architecture} identified the concrete components behind each layer of the proposed architecture. \acs{OSL} serves as the single entry point for all testbed services, delegating the provisioning of \acs{5G} resources to \acs{ITAv}'s Slice Manager. Network capabilities are exposed by the \acs{NEF}Sim and CAMARA under Open\acs{CAPIF}, while network metrics are collected and visualized with Prometheus and Grafana.
+
+Section~\ref{chap:impl:resource_lifecycle} addressed the lifecycle management of network slices and \acsp{UE}. Within the management hierarchy, \acs{OSL} fulfills the \acs{CSMF} role, while the \acs{NSMF} and \acs{NSSMF} functions are abstracted by the Slice Manager. To bridge both components, a Slicing Generic Controller was developed, translating the lifecycle events of the network slice and \acs{UE} resources into Slice Manager \acs{API} operations.
+
+Regarding network exposure, Section~\ref{chap:impl:exposure} describes the implementation of the \acs{NEF}Sim and how it was extended in this dissertation to interact with the live network and the testbed's monitoring system. The \textit{AsSessionWithQoS} \acs{API} was adapted to the current Slice Manager \acs{API}, while the \textit{AnalyticsExposure} \acs{API} was developed from scratch to expose the collected network metrics in the absence of an \acs{NWDAF}. In addition, the CAMARA \textit{Application Profiles} and \textit{Connectivity Insights Subscriptions} \acsp{API} were implemented, as a simplified interface to obtain analytics capabilities and compare them to the application's requirements. All exposure interfaces were secured through the integration of Open\acs{CAPIF} on both the provider and invoker sides, using its \acs{SDK} to handle their publication, discovery and authorized invocation.
+
+Section~\ref{chap:impl:observability} then detailed the monitoring system of the testbed. Since the 5GAIner \acs{5G} core provides no interfaces for exposing network metrics, passive monitoring relies on a Prometheus exporter that collects traffic metrics from mirrored traffic of the \acs{5G} data path. Active monitoring is provided by an \acs{ICMP} prober, selected among existing open source exporters, also compatible with Prometheus. The collected metrics are presented in Grafana dashboards provisioned per slice and are also made available programmatically through the \acs{NEF} and CAMARA analytics \acsp{API}.
+
+Subsequently, Section~\ref{chap:impl:delivery} described how every testbed capability is offered as an orderable \acs{CFS} in \acs{OSL}, decomposed into one or more \acsp{RFS}. For the delivery of \acs{5G} resources, the Network Slice \acs{CFS} inherits the standardized attributes of the \acs{GSMA} \acs{GST}, while the \acs{UE} \acs{CFS} follows the minimal \acs{UE} blueprint in line with the specifications proposed in Section~\ref{chap:proposal:delivery}. These are fulfilled by the Slice Manager, whereas the remaining services follow a \acs{HaaS} approach. A bundle \acs{CFS} aggregates all services, provisioning a complete experiment through a single order according to the proposed dependency chain.
+
+As summarized in Section~\ref{chap:impl:capabilities}, the realized testbed fulfills the capabilities proposed in Chapter~\ref{chap:proposal}, building on the components already available in the 5GAIner infrastructure. These include (i)~the replacement of dedicated slice management functions by the Slice Manager and the Generic Controller, (ii)~the collection of traffic metrics on the data path in place of core monitoring interfaces and (iii)~the delivery of road user notifications through a mock \acs{SMS} and a \acs{V2X} \acs{MQTT} service.
+
+Finally, Section~\ref{chap:impl:use-case} implemented the vehicle collision detection and notification application, utilizing the exposure capabilities of the testbed, namely the \acs{NEF} and CAMARA interfaces. The application was realized through both exposure paths, each of them sufficient to fulfill its requirements. This highlights the importance of the developed exposure capabilities, on which the application relies to observe the network conditions of its video streams and adapt their \acs{QoS} accordingly.
