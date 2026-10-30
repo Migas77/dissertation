@@ -10,16 +10,9 @@ This experiment measures and compares the time required to complete the operatio
 
 This experiment relies on the CAPIF, \acs{NEF}, and CAMARA services listed in Table~\ref{tab:impl:capabilities}, which are provisioned through OpenSlice alongside the network application. For this purpose, the application was deliberately configured to issue requests directly to the \acs{NEF} and the corresponding CAMARA \acsp{API}. As a CAPIF \acs{API} invoker, the application discovers and consumes the \acsp{API} provided by the \acs{NEF} and CAMARA that support the use case, and, for capabilities supported by both exposure models, either interface can be used, allowing both alternatives to be exercised.
 
-The testbed environment is the same as described in Section~\ref{chap:results:delivery:setup}, with OpenSlice and the Kubernetes cluster hosting the network exposure interfaces and the network application running on the same \acs{VM}. All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 \acs{VM} with 16 vCPUs, 32 GB \acs{RAM}, and 256 GB disk. The experimental setup is illustrated in Figure~\ref{fig:results:exposure:experimentalsetup}.
+The testbed environment is the same as described in Section~\ref{chap:results:delivery:setup}, with OpenSlice and the Kubernetes cluster hosting the network exposure interfaces and the network application running on the same \acs{VM}. All other services, namely the throughput Prometheus exporter and the pcap pipeline, ran on a separate Ubuntu 22.04 \acs{VM} with 16 vCPUs, 32 GB \acs{RAM}, and 256 GB disk. Within the experimental setup illustrated in Figure~\ref{fig:results:experimentalsetup}, this experiment evaluates the network application and the exposure components deployed on the Kubernetes cluster, namely Open\acs{CAPIF}, the \acs{NEF}Sim and the CAMARA \acsp{API}, which interact with the Slice Manager and the Huawei \acs{5G} Core.
 
-To ensure that every repetition follows an identical procedure, a Bash script was developed to automate the experiment, issuing the requests to each endpoint and recording the corresponding response times. Between consecutive runs, the script also deletes the resources created by the previous request (e.g. \acs{QoS} sessions and subscriptions), ensuring that each repetition starts from the same state and that no accumulated resources affect the measured times. The experimental setup is illustrated in Figure~\ref{fig:results:exposure:experimentalsetup}.
-
-\begin{figure}[htpb]
-    \centering
-    \includegraphics[width=1\linewidth]{figs/placeholder.png}
-    \caption{Experimental Setup for the Network Exposure Benchmark}
-    \label{fig:results:exposure:experimentalsetup}
-\end{figure}
+To ensure that every repetition follows an identical procedure, a Bash script was developed to automate the experiment, issuing the requests to each endpoint and recording the corresponding response times. Between consecutive runs, the script also deletes the resources created by the previous request (e.g. \acs{QoS} sessions and subscriptions), ensuring that each repetition starts from the same state and that no accumulated resources affect the measured times.
 
 \subsection{Procedure}
 \label{chap:results:exposure:procedure}
