@@ -1,0 +1,24 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Invoker\n(CAMARA Gateway | Network Application)" as INV
+participant "OpenCAPIF\nRegister" as REG
+participant "OpenCAPIF\nCCF" as CCF
+
+INV -> REG : 1. GET /getauth [Authorization: Basic <invoker credentials>]
+REG --> INV : 2. 200 OK [ca_root, access_token,\nccf_onboarding_url, ccf_discover_url]
+rnote over INV : 3. Store CA root certificate\nand generate a key pair
+INV -> CCF : 4. POST /api-invoker-management/v1/onboardedInvokers\n[Authorization: Bearer <access_token>, apiInvokerInformation,\nonboardingInformation (apiInvokerPublicKey), notificationDestination]
+alt onboarding accepted
+  CCF --> INV : 5.a. 201 Created [apiInvokerId,\nonboardingInformation (apiInvokerCertificate)]
+  rnote over INV : 6. Store signed certificate,\napiInvokerId and discovery URL
+else invalid credentials or request
+  CCF --> INV : 5.b. 401 Unauthorized | 400 Bad Request
+end
+
+@enduml

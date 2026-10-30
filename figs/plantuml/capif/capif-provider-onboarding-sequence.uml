@@ -1,0 +1,27 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Provider\n(NEFSim | CAMARA Gateway)" as PROV
+participant "OpenCAPIF\nRegister" as REG
+participant "OpenCAPIF\nCCF" as CCF
+
+PROV -> CCF : 1. TLS handshake
+CCF --> PROV : 2. CCF server certificate
+rnote over PROV : 3. Store CCF server certificate\n(public key for access token validation)
+PROV -> REG : 4. GET /getauth [Authorization: Basic <provider credentials>]
+REG --> PROV : 5. 200 OK [ca_root, access_token,\nccf_api_onboarding_url, ccf_publish_url]
+rnote over PROV : 6. Store CA root certificate and generate\na key pair per function (AMF, AEF-1, APF-1)
+PROV -> CCF : 7. POST /api-provider-management/v1/registrations\n[Authorization: Bearer <access_token>, regSec,\napiProvFuncs (apiProvFuncRole, regInfo (apiProvPubKey)), apiProvDomInfo]
+alt registration accepted
+  CCF --> PROV : 8.a. 201 Created [apiProvDomId,\napiProvFuncs (apiProvFuncId, apiProvFuncRole, regInfo (apiProvCert))]
+  rnote over PROV : 9. Store signed certificates, apiProvDomId\nand apiProvFuncId of each function
+else invalid credentials or request
+  CCF --> PROV : 8.b. 401 Unauthorized | 400 Bad Request
+end
+
+@enduml

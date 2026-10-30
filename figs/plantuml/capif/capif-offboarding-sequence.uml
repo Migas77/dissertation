@@ -1,0 +1,23 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Provider\n(NEFSim | CAMARA Gateway)" as PROV
+participant "OpenCAPIF\nCCF" as CCF
+participant "API Invoker\n(CAMARA Gateway | Network Application)" as INV
+
+PROV -> CCF : 1. DELETE /published-apis/v1/{apfId}/service-apis/{apiId}\n[mTLS (APF-1 certificate)]
+CCF --> PROV : 2. 204 No Content
+PROV -> CCF : 3. DELETE /api-provider-management/v1/registrations/{apiProvDomId}\n[mTLS (AMF certificate)]
+CCF --> PROV : 4. 204 No Content
+rnote over PROV : 5. Remove stored certificates\nand identifiers
+
+INV -> CCF : 6. DELETE /api-invoker-management/v1/onboardedInvokers/{apiInvokerId}\n[mTLS (invoker certificate)]
+CCF --> INV : 7. 204 No Content
+rnote over INV : 8. Remove stored certificates,\nidentifiers and security context
+
+@enduml

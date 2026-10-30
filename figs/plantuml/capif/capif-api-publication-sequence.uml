@@ -1,0 +1,22 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Provider\n(NEFSim | CAMARA Gateway)" as PROV
+participant "OpenCAPIF\nCCF" as CCF
+
+rnote over PROV : 1. Export the OpenAPI specification and translate\nit into a ServiceAPIDescription (securityMethods = OAUTH)
+PROV -> CCF : 2. POST /published-apis/v1/{apfId}/service-apis\n[mTLS (APF-1 certificate),\nServiceAPIDescription (apiName, aefProfiles (aefId,\nversions (resources), interfaceDescriptions))]
+alt service API published
+  CCF --> PROV : 3.a. 201 Created [ServiceAPIDescription (apiId)]
+  rnote over PROV : 4. Store apiId of the published service API
+else service API with the same apiName already published
+  CCF --> PROV : 3.b. 403 Forbidden [Already registered service with same api name]
+  rnote over PROV : 4. Keep the existing publication
+end
+
+@enduml

@@ -6,7 +6,7 @@ As it has been repeatedly noted throughout this document, the \acs{NEF} is the p
 Based on the analysis of the available \acs{NEF} implementations conducted in Section~\ref{exposure:NEFimplementations}, the NEFSim~\cite{NEFsim}, as extended by \acs{ITAv}~\cite{NEFemulatorAtnog}, was selected as the most suitable choice for this role within the testbed. This selection was motivated by a variety of factors:
 
 \begin{enumerate}
-    \item \textbf{Wider coverage of \acs{NEF} northbound \acs{API} suite}~\cite{ETSI_TS_129_522_V18_11_0}\textbf{:} including the \textit{PfdManagement}, \textit{MonitoringEvent}, \textit{AsSessionWithQoS} and \textit{TrafficInfluence} \acsp{API} \fix{COMPLETE THIS};
+    \item \textbf{Wider coverage of \acs{NEF} northbound \acs{API} suite}~\cite{ETSI_TS_129_522_V18_11_0}\textbf{:} including the \textit{PfdManagement}, \textit{MonitoringEvent}, \textit{AsSessionWithQoS} and \textit{TrafficInfluence} \acsp{API};
     \item \textbf{Built-in Integration with \acs{CAPIF}:} among the analyzed implementations, it is the only one which supports, or even considers, authentication, authorization and service discovery capabilities, using the \acs{CAPIF} framework;
     \item \textbf{Simulated Environment:} the NEFSim exposes the standardized set of \acs{NEF} northbound \acsp{API}, allowing network application developers to develop and validate network applications, without requiring access to a fully featured \acs{NEF} instance;
 \end{enumerate}
@@ -54,16 +54,17 @@ The \textit{AnalyticsExposure} \acs{API} specification~\cite{ETSI_TS_129_522_V18
 
 \begin{table}[htbp]
     \centering
-    \begin{tabularx}{\textwidth}{
-        >{\raggedright\arraybackslash\hsize=0.75\hsize}X
-        >{\raggedright\arraybackslash\hsize=0.75\hsize}X
-        >{\raggedright\arraybackslash\hsize=1.5\hsize}X}
+    \renewcommand\tabularxcolumn[1]{m{#1}}
+    \begin{tabularx}{\textwidth}{|
+        >{\RaggedRight\arraybackslash}m{\widthof{\texttt{PERFORMANCE}}}|
+        >{\RaggedRight\arraybackslash}X|
+        >{\RaggedRight\arraybackslash}m{\widthof{Mean UL/DL volume across UEs and variance}}|}
         \hline
         \textbf{Analytics Event} & \textbf{Reporting Scope} & \textbf{Reported Metrics} \\
         \hline
-        \texttt{UE\_COMM} & Per application (\texttt{appIds}) & Mean uplink and downlink volume across the target \acsp{UE} and respective variance, flow descriptions (protocol, \acs{IP} and \acs{MAC} addresses), ratio of communicating \acsp{UE} (\acs{UE} groups only) \\
+        \texttt{UE\_COMM} & Per application (\texttt{appIds}) & Mean \acs{UL}/\acs{DL} volume across \acsp{UE} and variance\newline Flow descriptions (protocol, \acs{IP}, \acs{MAC})\newline Ratio of communicating \acsp{UE} (groups only) \\
         \hline
-        \texttt{WLAN\_\allowbreak PERFORMANCE} & Per \acs{UE} (\acs{GPSI}) and aggregated for all \acsp{UE} (\acs{SSID}), towards a single application server (\texttt{appServerAddrs}) & Uplink and downlink throughput, uplink, downlink and total volume, per time slot; number of target \acsp{UE} \\
+        \texttt{WLAN\_\allowbreak PERFORMANCE} & Per \acs{UE} (\acs{GPSI}) and aggregated for all \acsp{UE} (\acs{SSID}), towards a single application server (\texttt{appServerAddrs}) & \acs{UL}/\acs{DL} throughput per time slot\newline \acs{UL}, \acs{DL} and total volume per time slot\newline Number of target \acsp{UE} \\
         \hline
     \end{tabularx}
     \caption{Analytics events supported by the \textit{AnalyticsExposure} \acs{API}}
@@ -90,9 +91,3 @@ The request is then delegated to the handler of the requested event (step 3). Be
 The Prometheus query catalog operates over the byte counters exported by the passive monitoring component, filtered by source and destination \acs{IP} address. Uplink traffic corresponds to packets sent from the \acs{UE} towards the application, and downlink traffic in the opposite direction. Traffic volumes are computed as the increase of the counters over a given interval, and throughput as their per-second rate, converted to bits per second. All queries required by an event are combined into a single Prometheus request, with each sub-query tagged by a distinct label, reducing the number of requests and ensuring the returned samples share the same timestamps. Prometheus answers with an instant vector or a range matrix, respectively (step 6). Moreover, as Prometheus omits time series without samples in the queried window, the handlers explicitly report zeroed values in such cases, so that the absence of traffic is reported as such, rather than as missing analytics.
 
 At the end, the handler converts the query results into the analytics data model of the requested event, i.e. the \texttt{ueCommInfos} or \texttt{wlanInfos} attributes of the \texttt{AnalyticsData} schema (steps 7 and 8), which is returned to the consumer (step 9.a). If no analytics data can be produced for the request, the \acs{NEF} instead responds with no content (step 9.b).
-
-\plan{
-    \begin{enumerate}
-        \item Come back to the table (CLOSE THE TABLE)
-    \end{enumerate}
-}

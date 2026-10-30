@@ -1,0 +1,31 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Invoker\n(CAMARA Gateway | Network Application)" as INV
+participant "OpenCAPIF\nCCF" as CCF
+participant "AEF\n(NEFSim | CAMARA Gateway)" as AEF
+
+INV -> CCF : 1. POST /capif-security/v1/trustedInvokers/{apiInvokerId}/update\n[mTLS (invoker certificate), securityInfo (prefSecurityMethods, aefId, apiId),\nnotificationDestination]
+alt security context exists
+  CCF --> INV : 2.a. 200 OK [ServiceSecurity]
+else first security context request
+  CCF --> INV : 2.b. 404 Not Found
+  INV -> CCF : 3. PUT /capif-security/v1/trustedInvokers/{apiInvokerId}\n[securityInfo (prefSecurityMethods, aefId, apiId), notificationDestination]
+  CCF --> INV : 4. 201 Created [ServiceSecurity]
+end
+INV -> CCF : 5. POST /capif-security/v1/securities/{apiInvokerId}/token\n[grant_type = client_credentials, client_id = apiInvokerId,\nscope = 3gpp#{aefId}:{apiName};...]
+CCF --> INV : 6. 200 OK [access_token, token_type, expires_in]
+INV -> AEF : 7. {operation} {discovered resource URI}\n[mTLS (invoker certificate), Authorization: Bearer <access_token>]
+rnote over AEF : 8. Verify the access token signature\nwith the CCF public key
+alt valid access token
+  AEF --> INV : 9.a. 2xx [API response]
+else missing, invalid or expired access token
+  AEF --> INV : 9.b. 401 Unauthorized
+end
+
+@enduml

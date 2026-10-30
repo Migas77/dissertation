@@ -1,0 +1,20 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "API Invoker\n(CAMARA Gateway | Network Application)" as INV
+participant "OpenCAPIF\nCCF" as CCF
+
+INV -> CCF : 1. GET /service-apis/v1/allServiceAPIs?api-invoker-id={apiInvokerId}\n[mTLS (invoker certificate)]
+alt invoker onboarded
+  CCF --> INV : 2.a. 200 OK [serviceAPIDescriptions (apiName, apiId,\naefProfiles (aefId, interfaceDescriptions, versions (resources), securityMethods))]
+  rnote over INV : 3. Store the AEF interface and resource\nURIs of each discovered service API
+else invoker not onboarded
+  CCF --> INV : 2.b. 404 Not Found
+end
+
+@enduml

@@ -7,17 +7,96 @@ Fully aligned with \mbox{3GPP~TS~29.222~Release~19}~\cite{}, Open\acs{CAPIF}\foo
 
 Among the available open source \acs{CAPIF} implementations, Open\acs{CAPIF} was selected for being standard-compliant and actively maintained by \acs{ETSI}, with regular releases tracking the evolution of the specification. It further provides a dedicated codebase for integration with the exposure ecosystem, the Open\acs{CAPIF} \acs{SDK}\footnote{\url{https://ocf.etsi.org/documentation/latest/sdk/sdk_introduction/}}, which streamlines onboarding and interaction with the \acs{CCF} for both providers, publishing their service \acsp{API}, and invokers, e.g. the network applications consuming them. Finally, its architecture aligns with the cloud-native paradigm targeted by the testbed, as all microservices are containerized and packaged as Helm charts, enabling their seamless deployment and lifecycle management alongside the remaining components of the testbed.
 
-\later{ADD INTRODUCTION FOR PROCEDURES; POSSIBLY MENTION KUBERNETES SETUP (MAYBE ALL IN SERVICE PROVISIONING)}
-
-\subsubsection{\acs{CAPIF} Procedures}
+\subsubsection{Open\acs{CAPIF} Procedures}
 \label{chap:impl:exposure:capif:procedures}
+
+{\setlength{\emergencystretch}{3em}%
+The integration of the exposure components with Open\acs{CAPIF} relies on a subset of the procedures defined in \acs{3GPP} TS~29.222~\cite{ETSI_CAPIF_TS_129_222_V18_6_0}, namely provider registration (\texttt{Register\_\allowbreak API\_\allowbreak Provider}), service \acs{API} publication (\texttt{Publish\_\allowbreak Service\_\allowbreak API}), invoker onboarding (\texttt{Onboard\_\allowbreak API\_\allowbreak Invoker}), service discovery (\texttt{Discover\_\allowbreak Service\_\allowbreak API}), access token acquisition (\texttt{Obtain\_\allowbreak Security\_\allowbreak Method} and \texttt{Obtain\_\allowbreak Authorization}) and offboarding (\texttt{Unpublish\_\allowbreak Service\_\allowbreak API}, \texttt{Deregister\_\allowbreak API\_\allowbreak Provider} and \texttt{Offboard\_\allowbreak API\_\allowbreak Invoker}). All of them are implemented through the Open\acs{CAPIF} \acs{SDK}, which translates each procedure into the corresponding requests towards the Open\acs{CAPIF} Register service and the \acs{CCF}. The \acs{NEF}Sim and CAMARA components act as \acs{API} providers, while CAMARA and the network application act as \acs{API} invokers. The following sequence diagrams detail the requests issued by the \acs{SDK} in each procedure.\par}
+
+\bulletparagraph{\textit{Provider Registration}}
+
+Before publishing any \acs{API}, the \acs{NEF}Sim and CAMARA components must register as \acs{API} providers in the \acs{CCF}, as illustrated in Figure~\ref{fig:impl:exposure:capif:provider-onboarding}. \acs{3GPP} TS~29.222 assumes that the provider already holds the credentials required for this registration, but leaves out of scope how they are obtained. Open\acs{CAPIF} fills this gap with its Register service, which exchanges the username and password of a previously created \acs{CAPIF} user for the \acs{CA} root certificate and a short-lived access token, later included in the registration request as its security credential. This user is not created by the provider itself, but must be created beforehand by the administrator of the Open\acs{CAPIF} instance, typically the network operator, who thereby controls which components are allowed to register in the framework.
+
+The certificates and identifiers returned by the \acs{CCF} are persisted locally, so that a restarted instance can detect that the provider is already registered. In addition, the provider stores the certificate of the \acs{CCF} server, as its public key corresponds to the private key the \acs{CCF} uses to sign access tokens, and is therefore used by the provider to validate the tokens presented by invokers.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-provider-onboarding-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} provider registration}
+    \label{fig:impl:exposure:capif:provider-onboarding}
+\end{figure}
+
+It should be noted that the \acs{SDK} retrieves the \acs{CCF} server certificate from the handshake of an \acs{HTTPS} connection established with certificate validation disabled, and the same applies to the request to the Register service. These are facilities provided by the Open\acs{CAPIF} \acs{SDK} to simplify development, as the trust anchors are obtained without any prior configuration. In a production deployment, the \acs{CA} root certificate and the \acs{CCF} server certificate would instead have to be provided to each component through a separate secure channel (e.g. provisioned and delivered by the network operator), since a certificate obtained over an unverified connection can be replaced by an attacker.
+
+\bulletparagraph{\textit{Service \acs{API} Publication}}
+
+Once registered, each provider publishes its \acsp{API} through the \acs{CAPIFAPF}, as depicted in Figure~\ref{fig:impl:exposure:capif:publication}. Instead of maintaining the service \acs{API} description manually, it is generated from the OpenAPI specification of the provider at publication time, so the published information always matches the endpoints actually served. The \acs{SDK} maps each path and \acs{HTTP} operation of the specification to a resource, named after the summary of the operation. As a result, all \acs{NEF}Sim northbound \acsp{API} are published under a single service \acs{API}, and the same applies to all CAMARA \acsp{API}.
+
+The interface description of the \acs{CAPIFAEF} points to the public \acs{HTTPS} endpoint of the provider and declares OAuth as the only supported security method, which determines how invokers are later authorized. Since \acs{CAPIF} rejects the publication of an \acs{API} whose name is already registered, this response is interpreted by the testbed components as a previous successful publication, rather than as a failure.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-api-publication-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} service \acs{API} publication}
+    \label{fig:impl:exposure:capif:publication}
+\end{figure}
+
+\bulletparagraph{\textit{Invoker Onboarding}}
+
+Invoker onboarding, shown in Figure~\ref{fig:impl:exposure:capif:invoker-onboarding}, follows the same pattern as provider registration, relying on the Register service to obtain the onboarding credentials. It is performed by CAMARA, as an invoker of the \acs{NEF}Sim \acsp{API}, and by the network application, as an invoker of both the \acs{NEF}Sim and CAMARA \acsp{API}, each with its own \acs{CAPIF} user.
+
+The invoker identifier returned by the \acs{CCF} is the key of all subsequent invoker procedures, from discovery to token issuance, and is persisted together with the certificate. This way, a restarted invoker reuses its existing identity, which is confirmed by a successful discovery request, instead of onboarding as a new invoker.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-invoker-onboarding-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} invoker onboarding}
+    \label{fig:impl:exposure:capif:invoker-onboarding}
+\end{figure}
+
+\bulletparagraph{\textit{Service Discovery}}
+
+Through service discovery, illustrated in Figure~\ref{fig:impl:exposure:capif:discovery}, invokers learn which \acsp{API} are available and where they are exposed, without any endpoint being configured in advance. The testbed components apply no discovery filters, retrieving every service \acs{API} visible to the invoker in a single request. Consequently, the network application receives the descriptions published by both providers and selects the appropriate one by its \acs{API} name, while CAMARA uses the description published by the \acs{NEF}Sim. Discovery is thus performed once at startup, with the retrieved information stored locally and reused for every subsequent \acs{API} invocation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-service-discovery-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} service discovery}
+    \label{fig:impl:exposure:capif:discovery}
+\end{figure}
+
+\bulletparagraph{\textit{Access Token Acquisition}}
+
+Access to the discovered \acsp{API} is governed by the Security \acs{API} of the \acs{CCF}, as depicted in Figure~\ref{fig:impl:exposure:capif:access}. The invoker must first hold a security context, i.e. a record in the \acs{CCF} associating it with the \acsp{API} it intends to consume and the security method to be applied to each, which in the testbed is always OAuth, as declared by the providers. Based on this context, the invoker obtains an access token through the OAuth~2.0 client credentials grant.
+
+As the requested scope lists every \acs{CAPIFAEF} and \acs{API} pair in the security context, a single \acs{JWT} authorizes the network application towards both the \acs{NEF}Sim and CAMARA. Authentication and authorization are therefore split between two mechanisms: the invoker certificate, verified through \acs{mTLS}, proves the identity of the invoker, while the token proves that the \acs{CCF} has authorized it. Being signed by the \acs{CCF}, the token is validated locally by the \acs{CAPIFAEF} with the \acs{CCF} public key, which keeps the \acs{CCF} out of the path of every \acs{API} invocation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-api-access-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} access token acquisition and \acs{API} invocation}
+    \label{fig:impl:exposure:capif:access}
+\end{figure}
+
+Similarly to the retrieval of certificates, the creation of the security context is a facility of the Open\acs{CAPIF} \acs{SDK}. The \acs{SDK} builds the security context on the invoker side, automatically covering every discovered \acs{API} and filling the authentication and authorization information with placeholder values. In a production deployment, the \acsp{API} an invoker is authorized to consume would not be determined by the invoker itself, but by the access policies defined in the \acs{CCF} by the providers and the network operator.
+
+\bulletparagraph{\textit{Offboarding}}
+
+The offboarding procedures, shown in Figure~\ref{fig:impl:exposure:capif:offboarding}, keep the state of the \acs{CCF} consistent with the components actually deployed. Without them, invokers would keep discovering \acsp{API} whose providers are no longer running, and the identities of removed components would accumulate in the \acs{CCF}. Each step is authenticated by the function responsible for the corresponding resource: the service \acs{API} is unpublished with the \acs{CAPIFAPF} certificate, and the provider registration is deleted with the \acs{CAPIFAMF} certificate, while invokers delete their onboarding resource with their own certificate. The locally persisted certificates and identifiers are removed as well, meaning that an offboarded component must go through registration or onboarding again at its next startup, under a new identity.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/plantuml/capif/capif-offboarding-sequence.pdf}
+    \caption{Sequence diagram for \acs{CAPIF} provider and invoker offboarding}
+    \label{fig:impl:exposure:capif:offboarding}
+\end{figure}
 
 \subsubsection{Open\acs{CAPIF} Integration}
 \label{chap:impl:exposure:capif:opencapif}
 
 Integrating Open\acs{CAPIF} into the testbed required realizing these procedures on both sides of the exposure chain, for both providers (i.e. \acs{NEF} and CAMARA) and the invokers (i.e. CAMARA and the network application). For the \acs{NEF}, this was expected to be more straightforward, as its built-in \acs{CAPIF} support was a key reason for selecting the \acs{NEF}Sim implementation in the first place. More concretely, the original upstream version of the emulator\footnote{\url{https://github.com/EVOLVED-5G/NEF_emulator}} relied on the EVOLVED-5G \acs{SDK}\footnote{\url{https://github.com/EVOLVED-5G/SDK-CLI/blob/master/evolved5g/sdk.py}}, which provides dedicated classes for provider onboarding and \acs{API} publication, invoker onboarding, invocation logging and auditing, service discovery, and OAuth-based authorization. From these, the emulator utilized the provider classes to onboard and publish the MonitoringEvent and AsSessionWithQoS \acsp{API}, logging each invocation to \acs{CAPIF}. Incoming requests were authorized by verifying the signature of the \acs{CAPIF}-issued access tokens (i.e. \acsp{JWT}) with the \acs{CAPIF} server's public key.
 
-This implementation was validated with older Open\acs{CAPIF} versions. However, a closer assessment of the implementation revealed that the \acs{SDK}'s integration had not kept pace with subsequent releases of the framework, resulting in erroneous and inconsistent behavior, for the most recent Open\acs{CAPIF} releases. Thus, this dissertation uses the Open\acs{CAPIF}~\acs{SDK}\footnote{\url{https://pypi.org/project/opencapif-sdk/}}, a Python package maintained alongside the \acs{CCF} within the \acs{ETSI}~Open\acs{CAPIF} project and kept compatible with its public releases, to implement provider and invoker procedures in the \acs{NEF}Sim, CAMARA and network application components. This also simplifies the integration process as the testbed grows, since new exposure interfaces, whether \acs{NEF}, CAMARA or even proprietary \acsp{API}, can reuse the same \acs{SDK} functionality instead of reimplementing the \acs{CAPIF} procedures. The same applies to any new network applications that third parties may wish to develop, provided they are built within the Python ecosystem.
+This implementation was validated with older Open\acs{CAPIF} versions. However, a closer assessment of the implementation revealed that the \acs{SDK}'s integration had not kept pace with subsequent releases of the framework, resulting in erroneous and inconsistent behavior, for the most recent Open\acs{CAPIF} releases. Thus, this dissertation uses the aforementioned Open\acs{CAPIF}~\acs{SDK}\footnote{\url{https://pypi.org/project/opencapif-sdk/}}, a Python package maintained alongside the \acs{CCF} within the \acs{ETSI}~Open\acs{CAPIF} project and kept compatible with its public releases, to implement provider and invoker procedures in the \acs{NEF}Sim, CAMARA and network application components. This also simplifies the integration process as the testbed grows, since new exposure interfaces, whether \acs{NEF}, CAMARA or even proprietary \acsp{API}, can reuse the same \acs{SDK} functionality instead of reimplementing the \acs{CAPIF} procedures. The same applies to any new network applications that third parties may wish to develop, provided they are built within the Python ecosystem.
 
 Since both the \acs{NEF}Sim and CAMARA interfaces are implemented with Fast\acs{API}\footnote{\url{https://fastapi.tiangolo.com}}, a Python web framework for building \acsp{API}, the Open\acs{CAPIF} \acs{SDK} is integrated through two mechanisms provided by the framework, each covering a distinct stage of the procedures described earlier. This approach also ensures the implementation of the \acs{CAPIF} flows remains independent of the testbed deployment environment, supporting development and operation outside the testbed (e.g. in non-Kubernetes environments, using Docker Compose, or in local deployments with a separate \acs{CAPIF} instance), in line with the goal of the corresponding open source repositories. 
 
@@ -48,7 +127,7 @@ res = await self.httpx_client.post(
 
 The remaining \acs{CAPIF} procedures occur on a per-request basis and are therefore handled by components that intercept each request, on the provider side for incoming requests and on the invoker side for outgoing ones.
 
-On the provider side, access token validation is implemented as a Fast\acs{API} dependency, i.e. a reusable function the framework resolves and executes before each path operation. This dependency is responsible for extracting the bearer token from the \texttt{Authorization} header and validating it against the \acs{CCF} public key obtained during provider onboarding. Requests with missing, expired or out-of-scope tokens are rejected by the dependency before the path operation is executed, returning \texttt{401 Unauthorized} when the token is absent, malformed or expired, and \texttt{403 Forbidden} when a valid token does not grant access to the requested \acs{API}.{\color{blue} Not all of this is currently implemented, out of scope tokens are not covered currently} By concentrating token validation in a single dependency, the route handlers of \acs{NEF}Sim and of the CAMARA \acsp{API} remain agnostic to the \acs{CAPIF} integration, allowing developers to focus solely on each \acs{API}'s functional logic, with the same dependency being reused across all \acs{API}.
+On the provider side, access token validation is implemented as a Fast\acs{API} dependency, i.e. a reusable function the framework resolves and executes before each path operation. This dependency is responsible for extracting the bearer token from the \texttt{Authorization} header and validating it against the \acs{CCF} public key obtained during provider onboarding. Requests with missing, expired or out-of-scope tokens are rejected by the dependency before the path operation is executed, returning \texttt{401 Unauthorized} when the token is absent, malformed or expired, and \texttt{403 Forbidden} when a valid token does not grant access to the requested \acs{API}. By concentrating token validation in a single dependency, the route handlers of \acs{NEF}Sim and of the CAMARA \acsp{API} remain agnostic to the \acs{CAPIF} integration, allowing developers to focus solely on each \acs{API}'s functional logic, with the same dependency being reused across all \acs{API}.
 
 On the invoker side, the CAMARA (and the \acs{PoC}) consume the \acs{NEF}Sim (and CAMARA) \acsp{API} through an \texttt{httpx} client configured with a custom authentication class, which preemptively verifies the expiry of the current access token and attaches it to the request as a bearer token. If the token is deemed expired or the \acs{NEF} responds with \texttt{401 Unauthorized}, possible in near-expiry scenarios, the class requests a new token from the \acs{CCF}, retrying the invoker request at most once. This way, token acquisition and renewal are also transparent to the code issuing the requests.
 
@@ -83,6 +162,6 @@ server {
 \label{code:impl:exposure:capif:nginx}
 \end{listing}
 
-All these certificates required for mutual authentication, for both roles, are generated and provided by Open\acs{CAPIF} as part of the onboarding process. This ensures that only invokers holding certificates issued by the trusted \acs{CAPIF} instance can establish a secure connection with the provider. It also prevents unauthorized entities from impersonating legitimate invokers or providers, that are actually registered with the \acs{CCF}, mitigating the risk of man-in-the-middle attacks. {\color{blue}point out insecure behavior of sdk on first login without verify=true}
+All these certificates required for mutual authentication, for both roles, are generated and provided by Open\acs{CAPIF} as part of the onboarding process. This ensures that only invokers holding certificates issued by the trusted \acs{CAPIF} instance can establish a secure connection with the provider. It also prevents unauthorized entities from impersonating legitimate invokers or providers, that are actually registered with the \acs{CCF}, mitigating the risk of man-in-the-middle attacks.
 
 Integrating \acs{CAPIF} and \acs{mTLS} into the authentication and authorization process also required changing the deployment \acs{IaC} manifests, including creating the Nginx Docker image~\footnote{\url{https://github.com/Testbed-TNEI/NEF_emulator/blob/main/nginx/Dockerfile.nginx}} and adapting the \acs{NEF}Sim docker compose~\footnote{\url{https://github.com/Testbed-TNEI/NEF_emulator/blob/main/docker-compose.yml}}, and the Helm charts of the \acs{NEF}Sim~\footnote{\url{https://github.com/Testbed-TNEI/NEF_emulator/tree/main/helm-chart}}, CAMARA\footnote{\url{https://github.com/Testbed-TNEI/gsma-open-gw-apis/tree/main/charts/gateway}} and network application\footnote{\url{https://github.com/Testbed-TNEI/VehicleDetectionPoC/tree/main/helm}} components. Moreover, since the aforementioned certificates are only obtained by the Fast\acs{API} application during startup, the Nginx container is deffered from starting until the certificates are available through a helper script (init container on Kubernetes) or compose's \texttt{depends\_on} clause.
