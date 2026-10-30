@@ -1,7 +1,13 @@
 \section{Testbed Capabilities}
 \label{chap:impl:capabilities}
 
-\later{check FR matches}
+Table~\ref{tab:impl:capabilities} summarizes the capabilities realized by the testbed, which essentially fulfill those proposed in Table~\ref{tab:proposal:capabilities} within the 5GAIner infrastructure. \acs{OSL} was chosen as the \acs{OSS}, through which all testbed services are ordered and managed via \acs{TMF} Open \acsp{API}, deploying containerized services on Kubernetes and delegating the orchestration of virtualized \acsp{NF} and applications to \acs{OSM}. The provisioning of network slices and \acsp{UE}, in turn, relies on the 5GAIner Slice Manager, which abstracts the lifecycle of network slices and \acs{UE} associations. Thus, the \acs{NSMF} and \acs{NSSMF} did not need to be implemented, being replaced by an \acs{OSL} Generic Controller that interacts with the Slice Manager.
+
+The network exposure layer is realized by the \acs{NEF}Sim, and by the CAMARA \acsp{API}, implemented as a translation layer over the \acs{NEF} northbound interface. In particular, the \acs{NEF} AnalyticsExposure and the CAMARA Application Profiles and Connectivity Insights Subscriptions \acsp{API} were developed in this dissertation. Both components are published, discovered and invoked through Open\acs{CAPIF}, integrated on the provider and invoker sides by means of its \acs{SDK}.
+
+As for network observability, since the 5GAIner \acs{5G} core does not expose monitoring \acsp{API}, passive monitoring relies on a Prometheus exporter that collects traffic volume and throughput from the mirrored traffic of the \acs{5G} System. Active monitoring is provided by an \acs{ICMP} prober, measuring the \acs{RTT}, \acs{RTT} jitter and packet loss of each probed \acs{UE}. The collected metrics are presented in Grafana dashboards, automatically provisioned per slice by \acs{OSL}.
+
+Lastly, notification mechanisms are also provided. As in the proposal, the capabilities marked in the Use Case column are those exercised by the \acs{PoC}.
 
 \begin{table}[htb!]
 % Fraction of \linewidth taken by the Capability column; Requirements fits one functional and one non-functional requirement per line, Use Case is as wide as its header and Realization takes the remaining width

@@ -1,0 +1,39 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Network\nApplication" as APP
+participant "CAPIF\nCore" as CAPIF
+participant "AEF\n(NEFSim | CAMARA Gateway)" as AEF
+
+==Onboarding==
+
+APP -> CAPIF : 1. GET /getauth [Authorization: Basic <invoker credentials>]
+CAPIF --> APP : 2. 200 OK [ca_root, access_token, ccf_onboarding_url, ccf_discover_url]
+APP -> CAPIF : 3. POST /api-invoker-management/v1/onboardedInvokers\n[Authorization: Bearer <access_token>, apiInvokerInformation,\nonboardingInformation (apiInvokerPublicKey), notificationDestination]
+CAPIF --> APP : 4. 201 Created [apiInvokerId, onboardingInformation (apiInvokerCertificate)]
+
+==Discovery==
+
+APP -> CAPIF : 5. GET /service-apis/v1/allServiceAPIs?api-invoker-id={apiInvokerId}
+CAPIF --> APP : 6. 200 OK [serviceAPIDescriptions (apiName, apiId,\naefProfiles (aefId, interfaceDescriptions, versions (resources), securityMethods))]
+rnote over APP : 7. Store the AEF endpoint and resource\nURIs of each discovered service API
+
+==Authorization==
+
+APP -> CAPIF : 8. PUT /capif-security/v1/trustedInvokers/{apiInvokerId}\n[securityInfo (prefSecurityMethods, aefId, apiId), notificationDestination]
+CAPIF --> APP : 9. 201 Created [ServiceSecurity]
+APP -> CAPIF : 10. POST /capif-security/v1/securities/{apiInvokerId}/token\n[grant_type = client_credentials, client_id = apiInvokerId,\nscope = 3gpp#{aefId}:{apiName};...]
+CAPIF --> APP : 11. 200 OK [access_token, token_type, expires_in]
+
+==API Invocation==
+
+APP -> AEF : 12. {method} {discovered resource URI}\n[Authorization: Bearer <access_token>, body]
+rnote over AEF : 13. Validate the access token
+AEF --> APP : 14. 2xx | 401 Unauthorized (new token via steps 10 and 11, then retry)
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Camera\nUE" as CAMUE
+participant "Inference\nServer" as INF
+participant "Network\nApplication" as APP
+participant "NEFSim" as NEF
+
+APP -> NEF : 1. GET /api/v1/UEs
+NEF --> APP : 2. 200 OK [UEs (supi, name, msisdn, ipv4)]
+rnote over APP : 3. Classify the UEs into cameras,\npedestrians and vehicles
+loop for each camera UE
+  APP -> NEF : 4. POST /3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions\n[notificationDestination, ueIpv4Addr | gpsi, dnn, qosReference]
+  NEF --> APP : 5. 201 Created [AsSessionWithQoSSubscription (self)]
+  NEF ->> APP : 6. POST {notificationDestination}\nUserPlaneNotificationData [transaction, eventReports\n(event = SUCCESSFUL_RESOURCES_ALLOCATION | FAILED_RESOURCES_ALLOCATION)]
+  APP --> NEF : 7. 204 No Content
+  rnote over APP : 8. Derive the KPI thresholds from the stream\nrequirements (minimum UL/DL bitrate)
+  APP -> NEF : 9. POST /3gpp-analyticsexposure/v1/{afId}/subscriptions\n[analyEventsSubs (analyEvent = WLAN_PERFORMANCE, tgtUe.gpsi, analyEventFilter\n(appServerAddrs, listOfAnaSubsets, extraReportReq.offsetPeriod, temporalGranSize)),\nanalyRepInfo (notifMethod = PERIODIC, repPeriod), notifUri, notifId]
+  NEF --> APP : 10. 201 Created [AnalyticsExposureSubsc (self)]
+  rnote over APP : 11. Build the surveyed area of the camera\n(circle | polygon)
+  loop for each pedestrian UE
+    APP -> NEF : 12. POST /3gpp-monitoring-event/v1/{scsAsId}/subscriptions\n[monitoringType = LOCATION_REPORTING, notificationDestination,\nmonitorExpireTime, msisdn | ipv4Addr]
+    NEF --> APP : 13. 201 Created [MonitoringEventSubscription (self)]
+    rnote over APP : 14. Store the subscription with the surveyed\narea and an unknown/inside/outside state
+  end
+end
+loop for each pedestrian, vehicle and dynamic camera UE
+  APP -> NEF : 15. POST /api/v1/ue_movement/start-loop [supi]
+  NEF --> APP : 16. 200 OK
+end
+loop for each camera UE with inference enabled
+  APP -> INF : 17. POST /inference_pipelines/initialise\n[video_configuration (video_reference, max_fps),\nprocessing_configuration (workflow_specification (model_id, webhook_sink))]
+  INF --> APP : 18. 200 OK [context (pipeline_id)]
+  CAMUE ->> INF : 19. Uplink video stream (RTSP)
+end
+
+@enduml

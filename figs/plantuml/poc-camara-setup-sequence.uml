@@ -1,0 +1,45 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Camera\nUE" as CAMUE
+participant "Inference\nServer" as INF
+participant "Network\nApplication" as APP
+participant "CAMARA\nGateway" as CAM
+participant "NEFSim" as NEF
+
+APP -> NEF : 1. GET /api/v1/UEs
+NEF --> APP : 2. 200 OK [UEs (supi, name, msisdn, ipv4)]
+rnote over APP : 3. Classify the UEs into cameras,\npedestrians and vehicles
+loop for each camera UE
+  APP -> CAM : 4. POST /qod-provisioning/v0.2/device-qos\n[device (ipv4Address | phoneNumber), qosProfile, sink]
+  CAM --> APP : 5. 201 Created [ProvisioningInfo (provisioningId, status = REQUESTED)]
+  CAM ->> APP : 6. POST {sink} CloudEvent\n[type = org.camaraproject.qod-provisioning.v0.status-changed,\ndata (provisioningId, status = AVAILABLE)]
+  APP --> CAM : 7. 204 No Content
+  APP -> CAM : 8. POST /application-profiles/v0.5/application-profiles\n[networkQualityThresholds (targetMinUpstreamRate, targetMinDownstreamRate)]
+  CAM --> APP : 9. 200 OK [ApplicationProfile (applicationProfileId)]
+  APP -> CAM : 10. POST /connectivity-insights-subscriptions/v0.6/subscriptions\n[sink, types = org.camaraproject.connectivity-insights-subscriptions.v0.network-quality,\nprotocol = HTTP, config (subscriptionDetail (device, applicationServer, applicationProfileId))]
+  CAM --> APP : 11. 200 OK [Subscription (id)]
+  rnote over APP : 12. Build the surveyed area of the camera (circle)
+  loop for each pedestrian UE
+    loop for each type in area-entered, area-left
+      APP -> CAM : 13. POST /geofencing-subscriptions/v0.4/subscriptions\n[sink, types = org.camaraproject.geofencing-subscriptions.v0.{type},\nprotocol = HTTP, config (subscriptionDetail (device, area (CIRCLE, center, radius)))]
+      CAM --> APP : 14. 201 Created [Subscription (id)]
+    end
+  end
+end
+loop for each pedestrian, vehicle and dynamic camera UE
+  APP -> NEF : 15. POST /api/v1/ue_movement/start-loop [supi]
+  NEF --> APP : 16. 200 OK
+end
+loop for each camera UE with inference enabled
+  APP -> INF : 17. POST /inference_pipelines/initialise\n[video_configuration (video_reference, max_fps),\nprocessing_configuration (workflow_specification (model_id, webhook_sink))]
+  INF --> APP : 18. 200 OK [context (pipeline_id)]
+  CAMUE ->> INF : 19. Uplink video stream (RTSP)
+end
+
+@enduml

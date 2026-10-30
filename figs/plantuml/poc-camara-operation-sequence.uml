@@ -1,0 +1,61 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Inference\nServer" as INF
+participant "Network\nApplication" as APP
+participant "CAMARA\nGateway" as CAM
+participant "NEFSim" as NEF
+participant "MQTT\nBroker" as MQTT
+
+par QoS monitoring and adaptation
+  loop on every KPI threshold evaluation
+    CAM ->> APP : 1. POST {sink} CloudEvent\n[type = org.camaraproject.connectivity-insights-subscriptions.v0.network-quality,\ndata (applicationProfileId, targetMinUpstreamRate, targetMinDownstreamRate)]
+    APP --> CAM : 2. 204 No Content
+    opt "unable to meet the application requirements" and no downgrade applied
+      loop for each pedestrian and vehicle UE
+        APP -> CAM : 3. POST /qod-provisioning/v0.2/retrieve-device-qos [device]
+        CAM --> APP : 4. 200 OK [ProvisioningInfo (provisioningId)] | 404 Not Found
+        opt UE provisioning exists
+          APP -> CAM : 5. DELETE /qod-provisioning/v0.2/device-qos/{provisioningId}
+          CAM --> APP : 6. 204 No Content
+        end
+        APP -> CAM : 7. POST /qod-provisioning/v0.2/device-qos\n[device (ipv4Address | phoneNumber), qosProfile = downgrade profile, sink]
+        CAM --> APP : 8. 201 Created [ProvisioningInfo (provisioningId, status = REQUESTED)]
+        CAM ->> APP : 9. POST {sink} CloudEvent\n[type = org.camaraproject.qod-provisioning.v0.status-changed,\ndata (provisioningId, status = AVAILABLE | UNAVAILABLE)]
+        APP --> CAM : 10. 204 No Content
+      end
+    end
+  end
+else Pedestrian tracking
+  loop on every geofence transition
+    CAM ->> APP : 11. POST {sink} CloudEvent\n[type = org.camaraproject.geofencing-subscriptions.v0.area-entered | area-left,\ndata (device, area, subscriptionId)]
+    APP --> CAM : 12. 204 No Content
+    rnote over APP : 13. Add or remove the pedestrian\nfrom the camera area set
+  end
+else Collision detection
+  loop for each processed frame
+    INF ->> APP : 14. POST /callbacks/crash_inference/{cameraSupi}\n[detections_number, predictions, frame_number]
+    APP --> INF : 15. 204 No Content
+    rnote over APP : 16. Filter by class and confidence threshold;\nconfirm persistence across the frame window
+  end
+end
+opt collision confirmed
+  APP -> CAM : 17. POST /location-retrieval/v0.4/retrieve [device (phoneNumber | ipv4Address)]
+  CAM --> APP : 18. 200 OK [lastLocationTime, area (CIRCLE | POLYGON)]
+  par
+    loop for each pedestrian UE in the camera area set
+      APP -> NEF : 19. POST /api/v1/sms/send [gpsi, text]
+      NEF --> APP : 20. 200 OK
+    end
+  else
+    APP -> MQTT : 21. PUBLISH {topicBase}/{stationId}/DENM\n[header, denm (management (eventPosition, relevanceDistance,\nvalidityDuration), situation (eventType = accident))]
+    rnote over MQTT : 22. Relay the DENM to the vehicles\nsubscribed to the event area
+  end
+end
+
+@enduml

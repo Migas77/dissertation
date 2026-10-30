@@ -1,0 +1,62 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+hide footbox
+skinparam ParticipantBackgroundColor White
+skinparam NoteBackgroundColor White
+
+participant "Inference\nServer" as INF
+participant "Network\nApplication" as APP
+participant "NEFSim" as NEF
+participant "MQTT\nBroker" as MQTT
+
+par QoS monitoring and adaptation
+  loop every repPeriod
+    NEF ->> APP : 1. POST {notifUri}\nAnalyticsEventNotification [notifId, analyEventNotifs (wlanInfos)]
+    APP --> NEF : 2. 204 No Content
+    rnote over APP : 3. Select the camera entry (gpsi) and compare uplinkRate\nand downlinkRate with the minimum UL/DL bitrates
+    opt KPI threshold breached and no downgrade applied
+      loop for each pedestrian and vehicle UE
+        APP -> NEF : 4. GET /3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions
+        NEF --> APP : 5. 200 OK [AsSessionWithQoSSubscription list]
+        alt UE subscription exists
+          APP -> NEF : 6.a. PATCH /3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions/{subscriptionId}\n[qosReference = downgrade profile]
+          NEF --> APP : 7.a. 200 OK
+        else
+          APP -> NEF : 6.b. POST /3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions\n[notificationDestination, ueIpv4Addr | gpsi, dnn, qosReference = downgrade profile]
+          NEF --> APP : 7.b. 201 Created [AsSessionWithQoSSubscription (self)]
+        end
+        NEF ->> APP : 8. POST {notificationDestination}\nUserPlaneNotificationData [transaction, eventReports\n(event = SUCCESSFUL_RESOURCES_ALLOCATION | FAILED_RESOURCES_ALLOCATION)]
+        APP --> NEF : 9. 204 No Content
+      end
+    end
+  end
+else Pedestrian tracking
+  loop on every pedestrian location update
+    NEF ->> APP : 10. POST {notificationDestination}\nMonitoringNotification [monitoringEventReports (locationInfo.geographicArea.point)]
+    APP --> NEF : 11. 204 No Content
+    rnote over APP : 12. Evaluate the point against the surveyed area;\non a state transition, add or remove the\npedestrian from the camera area set
+  end
+else Collision detection
+  loop for each processed frame
+    INF ->> APP : 13. POST /callbacks/crash_inference/{cameraSupi}\n[detections_number, predictions, frame_number]
+    APP --> INF : 14. 204 No Content
+    rnote over APP : 15. Filter by class and confidence threshold;\nconfirm persistence across the frame window
+  end
+end
+opt collision confirmed
+  APP -> NEF : 16. POST /3gpp-monitoring-event/v1/{scsAsId}/subscriptions\n[monitoringType = LOCATION_REPORTING, maximumNumberOfReports = 1, msisdn | ipv4Addr]
+  NEF --> APP : 17. 201 Created [locationInfo (geographicArea (camera location))]
+  par
+    loop for each pedestrian UE in the camera area set
+      APP -> NEF : 18. POST /api/v1/sms/send [gpsi, text]
+      NEF --> APP : 19. 200 OK
+    end
+  else
+    APP -> MQTT : 20. PUBLISH {topicBase}/{stationId}/DENM\n[header, denm (management (eventPosition, relevanceDistance,\nvalidityDuration), situation (eventType = accident))]
+    rnote over MQTT : 21. Relay the DENM to the vehicles\nsubscribed to the event area
+  end
+end
+
+@enduml
